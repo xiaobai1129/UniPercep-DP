@@ -631,6 +631,10 @@ def main():
 
         if GDRIVE_ROOT.exists():
             shutil.copy2(csv_path, GDRIVE_ROOT / "logs_a100" / csv_path.name)
+            for log_name in ("pro256_run.log", "v3_ultra_run.log"):
+                lp = LOG_DIR / log_name
+                if lp.exists():
+                    shutil.copy2(lp, GDRIVE_ROOT / "logs_a100" / log_name)
             os.sync()
 
     csv_f.close()

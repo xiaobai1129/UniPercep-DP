@@ -4,27 +4,41 @@
 
 ---
 
-## 一、 新实例“一键复现”快速指南（推荐）
+## 一、 新实例“一键恢复与复现”快速指南（推荐）
 
-所有源码、预处理好的数据集压缩包（`processed_unipercep_mini.tar.gz`）、训练好的模型权重（Checkpoints）、训练日志及可视化评测结果均已持久化保存在谷歌云盘 `/content/gdrive/MyDrive/colab/UniPercep_DP` 中。
+所有源码（`src/` 与 `src_a100/`）、全量/Mini 预处理数据集压缩包（`processed_unipercep_full.tar.gz` 420MB / `processed_unipercep_mini.tar.gz` 40MB）、全部模型权重（`checkpoints_a100/` 与 `checkpoints/`）、训练日志、评估报告及可视化结果均已实时同步并持久化保存在谷歌云盘 `/content/gdrive/MyDrive/colab/UniPercep_DP` 中。
 
-当启动全新的云端 GPU 实例（T4 / A100 / H100）并挂载 Google Drive 后，只需执行以下 **一行命令** 即可自动恢复环境与数据并完成复现：
+当启动全新的云端 GPU 实例（A100 / H100 / T4）并挂载 Google Drive 后，只需执行以下 **一行命令** 即可一键恢复完整项目状态：
 
-### 1. 一键恢复并复现推理评估与可视化（约 30~45 秒，无需重新下载或训练）
+### 1. 一键恢复完整项目状态（默认模式，约 10~20 秒，恢复全部代码、数据集、权重、日志与 Git 历史）
+```bash
+bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh
+# 或显式指定：
+bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --restore-only
+```
+> **执行流程**：自动初始化本地工作区 `/root/workspace/ceshi` $\rightarrow$ 同步云盘全部源码（`src/` + `src_a100/`）、文档（`项目说明.md`、`README.md`、`plan.md`）与 `.git` 仓库历史 $\rightarrow$ 检查并安装 Python 依赖 $\rightarrow$ 使用多核 `pigz` 从云盘秒级解压 14,400 样本全量数据集（`dataset_full`）与 Mini 数据集（`dataset`） $\rightarrow$ 恢复全部已训练模型权重（`checkpoints_a100` 20+ 个 `.pt` 权重文件）、训练日志（`logs_a100`）与可视化结果（`outputs_a100`），并启动后台 30 秒云盘自动同步守护进程。
+
+### 2. 一键恢复并复现 A100 全量评测与 6 联可视化大图
 ```bash
 bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --eval-only
 ```
-> **执行流程**：自动初始化本地目录 `/root/workspace/ceshi` $\rightarrow$ 同步云盘源码 $\rightarrow$ 检查并安装依赖包 $\rightarrow$ 从云盘直接解压预处理数据集缓存 $\rightarrow$ 拉取云盘最优权重 `unipercep_dp_best.pt` $\rightarrow$ 运行验证集评测并生成 5 张四联可视化对比图。
 
-### 2. 一键硬件自适应全量重训（自动识别 T4 / A100 / H100）
+### 3. 一键断点续训新一轮升级算法（`v2 Pro256` / `v3 Ultra`）
 ```bash
-bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --full-train
+# 断点续训 v2 Pro256 (6相机环视 + 256x256 BEV + 6大方向升级)
+bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --resume-pro256
+
+# 断点续训 v3 Ultra (FFT频域去噪 + 多模态DP + 因果桥接等10大方向升级)
+bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --resume-v3-ultra
 ```
-> **执行流程**：自动从云盘解压预处理好的数据集（跳过原始 `nuScenes` 下载），根据当前显卡型号自动切换 `fp16`（T4）或 `bf16`（H100/A100）及对应的 Batch Size 与训练轮数，依次完成四阶段全量训练，并在每个 Epoch 结束后自动同步最新/最优权重与 CSV 日志到谷歌云盘。
 
-### 3. 一键全链路冒烟测试自检（每个阶段跑 1 Epoch / 3 Batches）
+### 4. 一键全量重训（含四阶段渐进式训练与消融实验）或手动推送同步到云盘
 ```bash
-bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --smoke-test
+# 全量四阶段 + 消融实验训练（支持阶段级断点续训）
+bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh --full-train
+
+# 随时手动将本地最新代码、Git 历史、权重、日志强制备份到谷歌云盘
+bash /root/workspace/ceshi/reproduce_all.sh --sync-to-gdrive
 ```
 
 ---

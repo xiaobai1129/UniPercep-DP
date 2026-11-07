@@ -8,4 +8,4 @@
 | `Ablation_2_With_SSL_LPFT` | + SSL Anti-Degradation & LP-FT Tuning | 80.37 / 74.79 | 6.10 | 31.17 | 3.916 | 6.812 | 2.73 |
 | `Ablation_3_With_MultiSensor` | + 3x128x128 LiDAR BEV & 14D Homography Cross-Attn | 79.85 / 74.82 | 42.46 | 57.61 | 2.981 | 5.348 | 3.71 |
 | `Full_UniPercep_DP` (v1) | + 128x128 Differentiable DP & RAG-LoRA Controller | 83.87 / 81.19 | 54.73 | 64.76 | 1.500 | 3.031 | 3.12 |
-| **`Full_Pro256_6Cam` (v2 Six-Upgrade SOTA)** | **+ 6-Cam Surround + 256x256 BEV + Polar Lift + Kinematic GridSample DP + ClassQuery ML + ConvNeXt/EMA (Ep 1)** | **81.02 / 74.00** | **51.68** | **59.37** | **1.242** | **2.509** | **7.62** |
+| **`Pilot_v3_Ultra` (v2 Six-Upgrade SOTA)** | **+ 6-Cam Surround + 256x256 BEV + Polar Lift + Kinematic GridSample DP + ClassQuery ML + ConvNeXt/EMA (Ep 1)** | **81.62 / 73.28** | **30.44** | **49.81** | **3.353** | **5.646** | **1.56** |
