@@ -385,7 +385,7 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     if args.pilot:
-        batch_size = 12
+        batch_size = 8
         epochs = 8
         max_train = 1536
         max_val = 512
