@@ -26,6 +26,7 @@ wheels/
 # Datasets & Indexes (Do not upload)
 # ============================
 dataset/
+dataset_full/
 *.tar
 *.tar.gz
 *.tgz
@@ -48,6 +49,7 @@ dataset/
 # Model Checkpoints & Weights
 # ============================
 checkpoints/
+checkpoints_a100/
 *.pt
 *.pth
 *.ckpt
@@ -59,7 +61,10 @@ checkpoints/
 # Logs & Outputs
 # ============================
 logs/
+logs_a100/
 outputs/
+outputs_a100/*.png
+outputs_a100/*.json
 *.log
 *.png
 *.jpg

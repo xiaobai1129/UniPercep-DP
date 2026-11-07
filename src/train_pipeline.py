@@ -169,24 +169,39 @@ def detect_hardware_config():
         }
 
 
+def _atomic_copy(src: Path, dst: Path):
+    if not src.exists():
+        return
+    tmp_dst = dst.with_suffix(dst.suffix + ".tmp")
+    shutil.copy2(src, tmp_dst)
+    os.replace(tmp_dst, dst)
+
+
 def sync_to_gdrive(csv_path: Path, latest_ckpt: Path, best_ckpt: Path, stage_ckpt: Path = None):
     """
-    Real-time synchronization rule:
+    Real-time synchronization rule with atomic write protection:
     After every single epoch, copy latest weights, best weights, and training_metrics.csv
     to Google Drive and run os.sync().
     """
     GDRIVE_CKPT_DIR.mkdir(parents=True, exist_ok=True)
     GDRIVE_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-    if csv_path.exists():
-        shutil.copy2(csv_path, GDRIVE_LOG_DIR / csv_path.name)
-    if latest_ckpt.exists():
-        shutil.copy2(latest_ckpt, GDRIVE_CKPT_DIR / latest_ckpt.name)
-    if best_ckpt.exists():
-        shutil.copy2(best_ckpt, GDRIVE_CKPT_DIR / best_ckpt.name)
-    if stage_ckpt is not None and stage_ckpt.exists():
-        shutil.copy2(stage_ckpt, GDRIVE_CKPT_DIR / stage_ckpt.name)
+    _atomic_copy(csv_path, GDRIVE_LOG_DIR / csv_path.name)
+    _atomic_copy(latest_ckpt, GDRIVE_CKPT_DIR / latest_ckpt.name)
+    _atomic_copy(best_ckpt, GDRIVE_CKPT_DIR / best_ckpt.name)
+    if stage_ckpt is not None:
+        _atomic_copy(stage_ckpt, GDRIVE_CKPT_DIR / stage_ckpt.name)
     os.sync()
+
+
+def compute_multiclass_dice_loss(logits: torch.Tensor, targets: torch.Tensor, num_classes: int = 3):
+    probs = F.softmax(logits, dim=1)
+    one_hot = F.one_hot(targets.clamp(0, num_classes - 1), num_classes=num_classes).permute(0, 3, 1, 2).float()
+    dims = (0, 2, 3)
+    inter = torch.sum(probs * one_hot, dims)
+    cardinality = torch.sum(probs + one_hot, dims)
+    dice = (2.0 * inter + 1.0) / (cardinality + 1.0)
+    return 1.0 - dice.mean()
 
 
 def evaluate_model(model, val_loader, device, seg_weights, smoke_test=False):
@@ -376,7 +391,7 @@ def run_training(smoke_test: bool = False):
                     )
                     loss_seg = F.cross_entropy(
                         out["seg_logits"], batch_gpu["seg_mask"], weight=seg_weights
-                    )
+                    ) + compute_multiclass_dice_loss(out["seg_logits"], batch_gpu["seg_mask"])
                     # Weighted MSE for small object center heatmap to emphasize foreground peaks
                     pos_weight = 1.0 + 10.0 * batch_gpu["small_hm"]
                     loss_small = torch.mean(

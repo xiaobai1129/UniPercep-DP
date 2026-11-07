@@ -108,9 +108,9 @@ class DifferentiableDPPlanner(nn.Module):
             nn.Sigmoid(),
         )
 
-        # Trajectory regression head combining global fused context + DP softmin waypoint anchors + LoRA weights
+        # Trajectory regression head combining global fused context + 14D kinematic state + DP softmin anchors + LoRA weights
         self.traj_mlp = nn.Sequential(
-            nn.Linear(global_dim + 12 + 2, 256),
+            nn.Linear(global_dim + 14 + 12 + 2, 256),
             nn.LayerNorm(256),
             nn.ReLU(inplace=True),
             nn.Linear(256, 128),
@@ -125,7 +125,13 @@ class DifferentiableDPPlanner(nn.Module):
         horizon_rows = torch.tensor([7, 11, 14, 17, 21, 24], dtype=torch.long)
         self.register_buffer("horizon_rows", horizon_rows)
 
-    def forward(self, fused_bev: torch.Tensor, global_context: torch.Tensor, dp_weights: torch.Tensor):
+    def forward(
+        self,
+        fused_bev: torch.Tensor,
+        global_context: torch.Tensor,
+        dp_weights: torch.Tensor,
+        geo_state_14d: torch.Tensor,
+    ):
         """
         fused_bev: (B, C, 64, 64)
         global_context: (B, global_dim)
@@ -181,6 +187,7 @@ class DifferentiableDPPlanner(nn.Module):
         mlp_in = torch.cat(
             [
                 global_context,
+                geo_state_14d.to(global_context.dtype),
                 dp_anchors_flat.to(global_context.dtype),
                 dp_weights.to(global_context.dtype),
             ],
@@ -355,9 +362,10 @@ class UniPercepDPNet(nn.Module):
             # Jointly train fusion, risk map, DP planner, and keep perception active
             pass
         elif stage_name == "Stage3_RAG_LoRA":
-            # Freeze visual backbone & SSL decoder to focus on LoRA controller and DP trajectory smoothness
-            for param in self.backbone.parameters():
-                param.requires_grad = False
+            # Freeze shallow visual backbone & SSL decoder; fine-tune LoRA controller, planner, and perception heads
+            for name, param in self.backbone.named_parameters():
+                if any(k in name for k in ["conv1", "bn1", "layer1", "layer2", "layer3"]):
+                    param.requires_grad = False
             for param in self.ssl_decoder.parameters():
                 param.requires_grad = False
             self.lora_controller.base_proj.weight.requires_grad = False
@@ -414,7 +422,9 @@ class UniPercepDPNet(nn.Module):
         dp_weights, rag_rule_idx = self.lora_controller(global_context, multi_label_logits)
 
         # 6. Differentiable DP Planner
-        pred_risk, dp_value_map, pred_traj = self.dp_planner(fused_bev, global_context, dp_weights)
+        pred_risk, dp_value_map, pred_traj = self.dp_planner(
+            fused_bev, global_context, dp_weights, geo_state_14d
+        )
 
         return {
             "pred_clean_img": pred_clean_img,
