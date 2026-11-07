@@ -18,6 +18,7 @@ from torch.utils.data import Dataset, DataLoader
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from models_full import AsymmetricLoss
 from models_pro256 import UniPercepDPNet_Pro256, ModelEMA
+from models_v3_ultra import UniPercepDPNet_v3_Ultra
 
 LOCAL_ROOT = Path("/root/workspace/ceshi")
 GDRIVE_ROOT = Path("/content/gdrive/MyDrive/colab/UniPercep_DP")
@@ -93,15 +94,13 @@ class UniPercepSurround256Dataset(Dataset):
     def __len__(self):
         return len(self.items)
 
-    def _load_6cam_tensor(self, sample_token: str, front_corrupted_np: np.ndarray, deg_level: int):
+    def _load_5_other_cams(self, sample_token: str, front_resized: np.ndarray):
         """
-        Returns (6, 3, H_c, W_c) float32 tensor in [0, 1].
+        Loads & resizes the 5 surround cameras once per keyframe for RAM caching.
         """
         H_c, W_c = self.cam_hw
-        front_resized = cv2.resize(front_corrupted_np, (W_c, H_c), interpolation=cv2.INTER_LINEAR)
         cam_dict = UniPercepSurround256Dataset._cam_lookup.get(sample_token, {})
-
-        imgs_6 = [front_resized]
+        other_5 = []
         for idx, cam_name in enumerate(SURROUND_CAMS[1:], start=1):
             jpg_p = cam_dict.get(cam_name, None)
             loaded = None
@@ -110,11 +109,8 @@ class UniPercepSurround256Dataset(Dataset):
                 if bgr is not None:
                     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
                     loaded = cv2.resize(rgb, (W_c, H_c), interpolation=cv2.INTER_LINEAR)
-                    if deg_level > 0:
-                        loaded = cv2.GaussianBlur(loaded, (3, 3), 0.8)
 
             if loaded is None:
-                # Geometric perspective sector synthesis fallback when blob cam is not on disk
                 if idx == 1:  # FRONT_LEFT
                     loaded = cv2.flip(front_resized, 1)
                 elif idx == 2:  # FRONT_RIGHT
@@ -125,10 +121,8 @@ class UniPercepSurround256Dataset(Dataset):
                     loaded = np.roll(cv2.flip(front_resized, 1), shift=W_c // 3, axis=1)
                 else:  # BACK_RIGHT
                     loaded = np.roll(front_resized, shift=-W_c // 3, axis=1)
-            imgs_6.append(loaded)
-
-        arr_6 = np.stack(imgs_6, axis=0).astype(np.float32) / 255.0  # (6, H_c, W_c, 3)
-        return torch.from_numpy(arr_6).permute(0, 3, 1, 2).contiguous()  # (6, 3, H_c, W_c)
+            other_5.append(loaded)
+        return np.stack(other_5, axis=0)  # (5, H_c, W_c, 3) uint8
 
     def __getitem__(self, idx: int):
         rec = self.items[idx]
@@ -148,6 +142,11 @@ class UniPercepSurround256Dataset(Dataset):
 
             clean_np = cv2.cvtColor(clean_bgr, cv2.COLOR_BGR2RGB)
             corrupt_np = cv2.cvtColor(corrupt_bgr, cv2.COLOR_BGR2RGB)
+
+            H_c, W_c = self.cam_hw
+            clean_front_resized = cv2.resize(clean_np, (W_c, H_c), interpolation=cv2.INTER_LINEAR)
+            corrupt_front_resized = cv2.resize(corrupt_np, (W_c, H_c), interpolation=cv2.INTER_LINEAR)
+            other_5_cams = self._load_5_other_cams(sample_token, clean_front_resized)
 
             bev_128 = np.load(data_root / rec["bev_lidar"]).astype(np.float32)  # (3, 128, 128)
             seg_128 = np.load(data_root / rec["seg_mask"]).astype(np.uint8)     # (128, 128)
@@ -196,18 +195,15 @@ class UniPercepSurround256Dataset(Dataset):
 
             small_hm_128 = cv2.resize(small_hm_256[0], (128, 128), interpolation=cv2.INTER_AREA)[None, ...]
 
-            H_c, W_c = self.cam_hw
             clean_front_t = (
-                torch.from_numpy(cv2.resize(clean_np, (W_c, H_c), interpolation=cv2.INTER_LINEAR))
-                .permute(2, 0, 1)
-                .float()
-                / 255.0
+                torch.from_numpy(clean_front_resized).permute(2, 0, 1).float() / 255.0
             )
 
             cached = {
                 "clean_front_t": clean_front_t,
-                "clean_np": clean_np,
-                "corrupt_np": corrupt_np,
+                "clean_front_resized": clean_front_resized,
+                "corrupt_front_resized": corrupt_front_resized,
+                "other_5_cams": other_5_cams,
                 "bev_256": torch.from_numpy(bev_256),
                 "seg_256": torch.from_numpy(seg_256),
                 "seg_128": torch.from_numpy(seg_128.astype(np.int64)),
@@ -223,16 +219,21 @@ class UniPercepSurround256Dataset(Dataset):
             cached = UniPercepSurround256Dataset._ram_cache[cache_key]
 
         if deg_mode == 0:
-            front_deg = (0.7 * cached["clean_np"].astype(np.float32) + 0.3 * cached["corrupt_np"].astype(np.float32)).astype(np.uint8)
+            front_deg = (
+                0.7 * cached["clean_front_resized"].astype(np.float32)
+                + 0.3 * cached["corrupt_front_resized"].astype(np.float32)
+            ).astype(np.uint8)
         elif deg_mode == 1:
-            front_deg = cached["corrupt_np"]
+            front_deg = cached["corrupt_front_resized"]
         elif deg_mode == 2:
-            front_deg = np.clip(0.78 * cached["corrupt_np"].astype(np.float32) + 0.22 * 204.0, 0, 255).astype(np.uint8)
+            front_deg = np.clip(0.78 * cached["corrupt_front_resized"].astype(np.float32) + 0.22 * 204.0, 0, 255).astype(np.uint8)
         else:
-            front_deg = cached["corrupt_np"].copy()
-            front_deg[160:220, 280:360, :] = 25
+            front_deg = cached["corrupt_front_resized"].copy()
+            h_f, w_f, _ = front_deg.shape
+            front_deg[h_f // 3 : h_f // 2, w_f // 3 : w_f // 2, :] = 25
 
-        corrupted_6cam = self._load_6cam_tensor(sample_token, front_deg, deg_mode)
+        imgs_6 = np.concatenate([front_deg[None, ...], cached["other_5_cams"]], axis=0).astype(np.float32) / 255.0
+        corrupted_6cam = torch.from_numpy(imgs_6).permute(0, 3, 1, 2).contiguous()
 
         sensor_state = np.array(rec["sensor_state"], dtype=np.float32)
         homography = np.array(rec["homography"], dtype=np.float32).reshape(-1)
@@ -372,7 +373,8 @@ def evaluate_pro256(model: nn.Module, val_loader: DataLoader, device: torch.devi
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pilot", action="store_true", help="Run pilot experiment on remaining ~40GB VRAM")
+    parser.add_argument("--pilot", action="store_true", help="Run pilot experiment on remaining ~25GB VRAM")
+    parser.add_argument("--v3_ultra", action="store_true", help="Use 10-Direction UniPercepDPNet_v3_Ultra")
     parser.add_argument("--epochs", type=int, default=35)
     parser.add_argument("--batch_size", type=int, default=32)
     args = parser.parse_args()
@@ -383,30 +385,44 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     if args.pilot:
-        batch_size = 16
-        epochs = 10
-        max_train = 2048
+        batch_size = 12
+        epochs = 8
+        max_train = 1536
         max_val = 512
         cam_hw = (160, 288)
-        tag = "Pilot_Pro256_6Cam"
+        tag = "Pilot_v3_Ultra" if args.v3_ultra else "Pilot_Pro256_6Cam"
     else:
         batch_size = args.batch_size
         epochs = args.epochs
         max_train = None
         max_val = None
         cam_hw = (192, 320)
-        tag = "Full_Pro256_6Cam"
+        tag = "Full_v3_Ultra" if args.v3_ultra else "Full_Pro256_6Cam"
 
     print(f"[{tag}] Initializing 6-Camera Surround + 256x256 BEV Dataset (batch_size={batch_size}, cam_hw={cam_hw})...")
     train_ds = UniPercepSurround256Dataset(DATASET_DIR / "train_full.jsonl", max_samples=max_train, cam_hw=cam_hw)
     val_ds = UniPercepSurround256Dataset(DATASET_DIR / "val_full.jsonl", max_samples=max_val, cam_hw=cam_hw)
 
     train_loader = DataLoader(
-        train_ds, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True
+        train_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True,
+        drop_last=True,
+        persistent_workers=True,
     )
-    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+    )
 
-    model = UniPercepDPNet_Pro256(
+    ModelCls = UniPercepDPNet_v3_Ultra if args.v3_ultra else UniPercepDPNet_Pro256
+    model = ModelCls(
         backbone_name="convnext_small.fb_in22k",
         pretrained_backbone=True,
         use_ssl=True,
