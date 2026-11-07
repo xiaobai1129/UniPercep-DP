@@ -14,9 +14,20 @@ echo "============================================================"
 mkdir -p "${LOCAL_ROOT}"/{src,dataset,checkpoints,logs,outputs}
 mkdir -p "${GDRIVE_ROOT}"/{src,dataset,checkpoints,logs,outputs}
 
-# 2. Restore source code from Google Drive to local workspace
-echo "[Step 1/4] Syncing source code from Google Drive -> ${LOCAL_ROOT}/src/ ..."
+# 2. Restore source code & project docs from Google Drive to local workspace
+echo "[Step 1/4] Syncing source code & docs from Google Drive -> ${LOCAL_ROOT}/ ..."
 cp -rf "${GDRIVE_ROOT}/src/"*.py "${LOCAL_ROOT}/src/"
+for f in README.md plan.md .gitignore reproduce_all.sh; do
+    if [ -f "${GDRIVE_ROOT}/${f}" ]; then
+        cp -f "${GDRIVE_ROOT}/${f}" "${LOCAL_ROOT}/${f}"
+    fi
+done
+if [ -f "${GDRIVE_ROOT}/.gitconfig" ]; then
+    cp -f "${GDRIVE_ROOT}/.gitconfig" ~/.gitconfig
+fi
+if [ -f "${GDRIVE_ROOT}/git_repo_backup.tar.gz" ] && [ ! -d "${LOCAL_ROOT}/.git" ]; then
+    tar -xzf "${GDRIVE_ROOT}/git_repo_backup.tar.gz" -C "${LOCAL_ROOT}"
+fi
 
 # 3. Check & install Python dependencies (with fast prebuilt wheels)
 echo "[Step 2/4] Checking Python environment and dependencies ..."
