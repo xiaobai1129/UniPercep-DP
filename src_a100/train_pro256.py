@@ -179,8 +179,10 @@ class UniPercepSurround256Dataset(Dataset):
                     iy = int(np.clip(round(float(cy) * 2.0), 0, 255))
                     y0, y1 = max(0, iy - rad), min(256, iy + rad + 1)
                     x0, x1 = max(0, ix - rad), min(256, ix + rad + 1)
-                    ky0, ky1 = y0 - (iy - rad), rad + 1 + (y1 - (iy + rad + 1))
-                    kx0, kx1 = x0 - (ix - rad), rad + 1 + (x1 - (ix + rad + 1))
+                    ky0 = y0 - (iy - rad)
+                    kx0 = x0 - (ix - rad)
+                    ky1 = ky0 + (y1 - y0)
+                    kx1 = kx0 + (x1 - x0)
                     small_hm_256[0, y0:y1, x0:x1] = np.maximum(
                         small_hm_256[0, y0:y1, x0:x1], g_kernel[ky0:ky1, kx0:kx1]
                     )
