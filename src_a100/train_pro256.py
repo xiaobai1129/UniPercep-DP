@@ -463,7 +463,28 @@ def main():
         )
 
     best_score = -1e9
-    for ep in range(1, epochs + 1):
+    start_ep = 1
+    resume_p = CKPT_DIR / f"{tag}_best.pt"
+    if resume_p.exists() and not args.pilot:
+        try:
+            ckpt = torch.load(resume_p, map_location=device, weights_only=False)
+            model.load_state_dict(ckpt["model"], strict=False)
+            ema.ema.load_state_dict(ckpt["ema"], strict=False)
+            start_ep = int(ckpt.get("epoch", 1)) + 1
+            m_prev = ckpt.get("metrics", {})
+            if m_prev:
+                best_score = (
+                    m_prev["MultiLabel_Acc"]
+                    + m_prev["Small_Object_AP"]
+                    + m_prev["Seg_mIoU"]
+                    - m_prev["Traj_ADE"] * 15.0
+                    - m_prev["Collision_Rate"] * 2.0
+                )
+            print(f"[RESUME] Loaded {resume_p.name} (Epoch {start_ep - 1}, best_score={best_score:.2f}), resuming from Epoch {start_ep}!")
+        except Exception as e:
+            print(f"[WARN] Could not resume from {resume_p}: {e}")
+
+    for ep in range(start_ep, epochs + 1):
         t0 = time.time()
         model.train()
         running_loss = 0.0
