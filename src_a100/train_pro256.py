@@ -131,25 +131,28 @@ class UniPercepSurround256Dataset(Dataset):
         return torch.from_numpy(arr_6).permute(0, 3, 1, 2).contiguous()  # (6, 3, H_c, W_c)
 
     def __getitem__(self, idx: int):
-        meta = self.items[idx]
-        npz_path = meta["npz_path"]
-        deg_level = int(meta["deg_level"])
-        sample_token = meta.get("sample_token", "")
+        rec = self.items[idx]
+        kf_idx = rec["keyframe_idx"]
+        deg_mode = int(rec.get("deg_mode", 1))
+        sample_token = rec.get("sample_token", "")
+        data_root = DATASET_DIR / "processed"
 
-        cache_key = (npz_path, self.cam_hw)
+        cache_key = (kf_idx, self.cam_hw)
         if cache_key not in UniPercepSurround256Dataset._ram_cache:
-            with np.load(npz_path) as data:
-                clean_np = data["clean_img"]
-                deg_np = data["deg_imgs"]  # (4, H, W, 3)
-                bev_128 = data["bev_feature"].astype(np.float32)  # (3, 128, 128)
-                ego_pose = data["ego_pose"].astype(np.float32)
-                homography = data["homography"].astype(np.float32).reshape(-1)
-                multi_label = data["multi_label"].astype(np.float32)
-                seg_128 = data["seg_mask"].astype(np.uint8)
-                det_boxes = data["det_boxes"].astype(np.float32)
-                risk_128 = data["risk_map"].astype(np.float32)
-                gt_traj = data["gt_traj"].astype(np.float32)
-                dp_weights_gt = data["dp_weights_gt"].astype(np.float32)
+            clean_bgr = cv2.imread(str(data_root / rec["clean_img"]))
+            corrupt_bgr = cv2.imread(str(data_root / rec["corrupted_img"]))
+            if clean_bgr is None:
+                clean_bgr = np.zeros((448, 768, 3), dtype=np.uint8)
+            if corrupt_bgr is None:
+                corrupt_bgr = np.zeros((448, 768, 3), dtype=np.uint8)
+
+            clean_np = cv2.cvtColor(clean_bgr, cv2.COLOR_BGR2RGB)
+            corrupt_np = cv2.cvtColor(corrupt_bgr, cv2.COLOR_BGR2RGB)
+
+            bev_128 = np.load(data_root / rec["bev_lidar"]).astype(np.float32)  # (3, 128, 128)
+            seg_128 = np.load(data_root / rec["seg_mask"]).astype(np.uint8)     # (128, 128)
+            risk_128 = np.load(data_root / rec["risk_map"]).astype(np.float32)  # (128, 128)
+            det_boxes = rec.get("det_boxes", [])
 
             # Construct 256x256 high-res BEV LiDAR, Seg, Risk, and Sub-Pixel Small-Object Heatmap
             bev_256 = np.zeros((3, 256, 256), dtype=np.float32)
@@ -165,21 +168,23 @@ class UniPercepSurround256Dataset(Dataset):
             small_mask_256 = np.zeros((1, 256, 256), dtype=np.float32)
 
             yy256, xx256 = np.mgrid[0:256, 0:256].astype(np.float32)
-            for box in det_boxes:
-                cx, cy, bw, bh, cls_id, track_id, bvx, bvy, is_small = box
-                cx_256 = int(np.clip(round(cx * 2.0), 0, 255))
-                cy_256 = int(np.clip(round(cy * 2.0), 0, 255))
-                if is_small > 0.5 or True:
-                    sigma = 3.2 if is_small > 0.5 else 4.0
+            for obj in det_boxes:
+                cx, cy, bw, bh, cls_id, track_id, bvx, bvy, is_small = obj
+                if is_small == 1 and 0 <= cx < 128 and 0 <= cy < 128:
+                    cx_256 = float(cx) * 2.0
+                    cy_256 = float(cy) * 2.0
+                    sigma = 3.6
                     g = np.exp(-((xx256 - cx_256) ** 2 + (yy256 - cy_256) ** 2) / (2.0 * sigma * sigma))
                     small_hm_256[0] = np.maximum(small_hm_256[0], g)
-                    for dy in range(-2, 3):
-                        for dx in range(-2, 3):
-                            ny, nx = np.clip(cy_256 + dy, 0, 255), np.clip(cx_256 + dx, 0, 255)
-                            small_reg_256[:, ny, nx] = [bw, bh, bvx, bvy]
-                            small_mask_256[0, ny, nx] = 1.0
+                    ix, iy = int(cx_256), int(cy_256)
+                    r0_x, r1_x = max(0, ix - 2), min(256, ix + 3)
+                    r0_y, r1_y = max(0, iy - 2), min(256, iy + 3)
+                    small_reg_256[0, r0_y:r1_y, r0_x:r1_x] = bw / 10.0
+                    small_reg_256[1, r0_y:r1_y, r0_x:r1_x] = bh / 10.0
+                    small_reg_256[2, r0_y:r1_y, r0_x:r1_x] = bvx / 10.0
+                    small_reg_256[3, r0_y:r1_y, r0_x:r1_x] = bvy / 10.0
+                    small_mask_256[0, r0_y:r1_y, r0_x:r1_x] = 1.0
 
-            # Also keep 128x128 small_hm for 100% identical evaluation protocol comparison
             small_hm_128 = cv2.resize(small_hm_256[0], (128, 128), interpolation=cv2.INTER_AREA)[None, ...]
 
             H_c, W_c = self.cam_hw
@@ -190,52 +195,49 @@ class UniPercepSurround256Dataset(Dataset):
                 / 255.0
             )
 
+            cached = {
+                "clean_front_t": clean_front_t,
+                "clean_np": clean_np,
+                "corrupt_np": corrupt_np,
+                "bev_256": torch.from_numpy(bev_256),
+                "seg_256": torch.from_numpy(seg_256),
+                "seg_128": torch.from_numpy(seg_128.astype(np.int64)),
+                "small_hm_256": torch.from_numpy(small_hm_256),
+                "small_reg_256": torch.from_numpy(small_reg_256),
+                "small_mask_256": torch.from_numpy(small_mask_256),
+                "small_hm_128": torch.from_numpy(small_hm_128),
+                "risk_256": torch.from_numpy(risk_256),
+            }
             if len(UniPercepSurround256Dataset._ram_cache) < 3800:
-                UniPercepSurround256Dataset._ram_cache[cache_key] = {
-                    "clean_front_t": clean_front_t,
-                    "deg_np": deg_np,
-                    "bev_256": torch.from_numpy(bev_256),
-                    "geo_14d": torch.from_numpy(np.concatenate([ego_pose, homography], axis=0)),
-                    "multi_label": torch.from_numpy(multi_label),
-                    "seg_256": torch.from_numpy(seg_256),
-                    "seg_128": torch.from_numpy(seg_128.astype(np.int64)),
-                    "small_hm_256": torch.from_numpy(small_hm_256),
-                    "small_reg_256": torch.from_numpy(small_reg_256),
-                    "small_mask_256": torch.from_numpy(small_mask_256),
-                    "small_hm_128": torch.from_numpy(small_hm_128),
-                    "risk_256": torch.from_numpy(risk_256),
-                    "gt_traj": torch.from_numpy(gt_traj),
-                    "dp_weights_gt": torch.from_numpy(dp_weights_gt),
-                }
-                cached = UniPercepSurround256Dataset._ram_cache[cache_key]
-            else:
-                cached = {
-                    "clean_front_t": clean_front_t,
-                    "deg_np": deg_np,
-                    "bev_256": torch.from_numpy(bev_256),
-                    "geo_14d": torch.from_numpy(np.concatenate([ego_pose, homography], axis=0)),
-                    "multi_label": torch.from_numpy(multi_label),
-                    "seg_256": torch.from_numpy(seg_256),
-                    "seg_128": torch.from_numpy(seg_128.astype(np.int64)),
-                    "small_hm_256": torch.from_numpy(small_hm_256),
-                    "small_reg_256": torch.from_numpy(small_reg_256),
-                    "small_mask_256": torch.from_numpy(small_mask_256),
-                    "small_hm_128": torch.from_numpy(small_hm_128),
-                    "risk_256": torch.from_numpy(risk_256),
-                    "gt_traj": torch.from_numpy(gt_traj),
-                    "dp_weights_gt": torch.from_numpy(dp_weights_gt),
-                }
+                UniPercepSurround256Dataset._ram_cache[cache_key] = cached
         else:
             cached = UniPercepSurround256Dataset._ram_cache[cache_key]
 
-        corrupted_6cam = self._load_6cam_tensor(sample_token, cached["deg_np"][deg_level], deg_level)
+        if deg_mode == 0:
+            front_deg = (0.7 * cached["clean_np"].astype(np.float32) + 0.3 * cached["corrupt_np"].astype(np.float32)).astype(np.uint8)
+        elif deg_mode == 1:
+            front_deg = cached["corrupt_np"]
+        elif deg_mode == 2:
+            front_deg = np.clip(0.78 * cached["corrupt_np"].astype(np.float32) + 0.22 * 204.0, 0, 255).astype(np.uint8)
+        else:
+            front_deg = cached["corrupt_np"].copy()
+            front_deg[160:220, 280:360, :] = 25
+
+        corrupted_6cam = self._load_6cam_tensor(sample_token, front_deg, deg_mode)
+
+        sensor_state = np.array(rec["sensor_state"], dtype=np.float32)
+        homography = np.array(rec["homography"], dtype=np.float32).reshape(-1)
+        geo_14d = torch.from_numpy(np.concatenate([sensor_state, homography], axis=0))
+        multi_label = torch.from_numpy(np.array(rec["multi_label"], dtype=np.float32))
+        gt_traj = torch.from_numpy(np.array(rec["gt_traj"], dtype=np.float32))
+        dp_weights_gt = torch.from_numpy(np.array(rec.get("dp_weights_gt", [2.0, 1.8, 1.8]), dtype=np.float32))
 
         return {
             "clean_img": cached["clean_front_t"],
             "corrupted_imgs": corrupted_6cam,
             "bev_lidar_256": cached["bev_256"],
-            "geo_14d": cached["geo_14d"],
-            "multi_label": cached["multi_label"],
+            "geo_14d": geo_14d,
+            "multi_label": multi_label,
             "seg_256": cached["seg_256"],
             "seg_mask": cached["seg_128"],
             "small_hm_256": cached["small_hm_256"],
@@ -243,8 +245,8 @@ class UniPercepSurround256Dataset(Dataset):
             "small_mask_256": cached["small_mask_256"],
             "small_hm": cached["small_hm_128"],
             "risk_256": cached["risk_256"],
-            "gt_traj": cached["gt_traj"],
-            "dp_weights_gt": cached["dp_weights_gt"],
+            "gt_traj": gt_traj,
+            "dp_weights_gt": dp_weights_gt,
         }
 
 
