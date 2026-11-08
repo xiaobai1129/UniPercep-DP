@@ -17,6 +17,7 @@
 # Available Modes:
 #   --restore-only      (Default) Configure Python env & restore all code, datasets, checkpoints, logs, outputs & Git repo without re-training
 #   --eval-only         Restore state + run A100 evaluation & 6-panel visualization
+#   --paper-supplement  Restore state + run TPAMI TransFuser inference-only supplement tables (Exp 1-4) & figures (Fig 1-6)
 #   --resume-v4-chronos Restore state + run/resume v4.0 Full_v4_Chronos training (auto-syncs to GDrive)
 #   --resume-v3-5-lora  Restore state + run/resume v3.5 Full_v3_5_SafetyLoRA training (auto-syncs to GDrive)
 #   --resume-v3-ultra   Restore state + run/resume v3 Full_v3_Ultra training (auto-syncs to GDrive)
@@ -51,7 +52,7 @@ sync_local_to_gdrive() {
     # 1. Source code & root docs
     cp -uf "${LOCAL_ROOT}/src/"*.py "${GDRIVE_ROOT}/src/" 2>/dev/null || true
     cp -uf "${LOCAL_ROOT}/src_a100/"*.py "${GDRIVE_ROOT}/src_a100/" 2>/dev/null || true
-    for f in "README.md" "plan.md" "项目说明.md" ".gitignore" "reproduce_all.sh"; do
+    for f in "README.md" "plan.md" "项目说明.md" ".gitignore" "reproduce_all.sh" "requirements_a100_lock.txt"; do
         if [ -f "${LOCAL_ROOT}/${f}" ]; then
             cp -uf "${LOCAL_ROOT}/${f}" "${GDRIVE_ROOT}/${f}"
         fi
@@ -74,13 +75,13 @@ sync_local_to_gdrive() {
         [ -f "${LOCAL_ROOT}/dataset_full/${f}" ] && cp -uf "${LOCAL_ROOT}/dataset_full/${f}" "${GDRIVE_ROOT}/dataset_full/${f}"
     done
 
-    # 4. Checkpoints, logs, and outputs (v0 mini and A100 v1/v2/v3/v3.5/v4.0)
+    # 4. Checkpoints, logs, and outputs (v0 mini and A100 v1/v2/v3/v3.5/v4.0 + paper_supplement)
     for subdir in checkpoints checkpoints_a100 logs logs_a100 outputs outputs_a100; do
         if [ -d "${LOCAL_ROOT}/${subdir}" ]; then
             if command -v rsync >/dev/null 2>&1; then
                 rsync -a --update --inplace "${LOCAL_ROOT}/${subdir}/" "${GDRIVE_ROOT}/${subdir}/" 2>/dev/null || true
             else
-                cp -uf "${LOCAL_ROOT}/${subdir}/"* "${GDRIVE_ROOT}/${subdir}/" 2>/dev/null || true
+                cp -ruf "${LOCAL_ROOT}/${subdir}/"* "${GDRIVE_ROOT}/${subdir}/" 2>/dev/null || true
             fi
         fi
     done
@@ -103,10 +104,10 @@ while true; do
     [ -d "${GDRIVE_ROOT}" ] || continue
     for subdir in src src_a100 logs logs_a100 outputs outputs_a100 checkpoints checkpoints_a100; do
         if [ -d "${LOCAL_ROOT}/${subdir}" ]; then
-            cp -uf "${LOCAL_ROOT}/${subdir}/"* "${GDRIVE_ROOT}/${subdir}/" 2>/dev/null || true
+            cp -ruf "${LOCAL_ROOT}/${subdir}/"* "${GDRIVE_ROOT}/${subdir}/" 2>/dev/null || true
         fi
     done
-    for f in "README.md" "plan.md" "项目说明.md" ".gitignore" "reproduce_all.sh"; do
+    for f in "README.md" "plan.md" "项目说明.md" ".gitignore" "reproduce_all.sh" "requirements_a100_lock.txt"; do
         [ -f "${LOCAL_ROOT}/${f}" ] && cp -uf "${LOCAL_ROOT}/${f}" "${GDRIVE_ROOT}/${f}" 2>/dev/null || true
     done
     sync
@@ -141,7 +142,7 @@ echo "[Step 1/5] Restoring source code (src/ & src_a100/), docs & Git repo from 
 cp -uf "${GDRIVE_ROOT}/src/"*.py "${LOCAL_ROOT}/src/" 2>/dev/null || true
 cp -uf "${GDRIVE_ROOT}/src_a100/"*.py "${LOCAL_ROOT}/src_a100/" 2>/dev/null || true
 
-for f in "README.md" "plan.md" "项目说明.md" ".gitignore" "reproduce_all.sh"; do
+for f in "README.md" "plan.md" "项目说明.md" ".gitignore" "reproduce_all.sh" "requirements_a100_lock.txt"; do
     if [ -f "${GDRIVE_ROOT}/${f}" ]; then
         cp -uf "${GDRIVE_ROOT}/${f}" "${LOCAL_ROOT}/${f}"
     fi
@@ -213,7 +214,7 @@ for subdir in checkpoints checkpoints_a100 logs logs_a100 outputs outputs_a100; 
         if command -v rsync >/dev/null 2>&1; then
             rsync -a --update "${GDRIVE_ROOT}/${subdir}/" "${LOCAL_ROOT}/${subdir}/" 2>/dev/null || true
         else
-            cp -uf "${GDRIVE_ROOT}/${subdir}/"* "${LOCAL_ROOT}/${subdir}/" 2>/dev/null || true
+            cp -ruf "${GDRIVE_ROOT}/${subdir}/"* "${LOCAL_ROOT}/${subdir}/" 2>/dev/null || true
         fi
     fi
 done
@@ -232,7 +233,7 @@ if [ "${MODE}" == "--restore-only" ]; then
     echo "  - A100 Checkpoints             : $(ls -1 "${LOCAL_ROOT}/checkpoints_a100/"*.pt 2>/dev/null | wc -l) checkpoints ($(du -sh "${LOCAL_ROOT}/checkpoints_a100" 2>/dev/null | cut -f1))"
     echo "  - Final v4.0 Checkpoint        : $(ls -lh "${LOCAL_ROOT}/checkpoints_a100/Full_v4_Chronos_best.pt" 2>/dev/null | awk '{print $9, "("$5")"}')"
     echo "  - Final v3.5 LoRA Checkpoint   : $(ls -lh "${LOCAL_ROOT}/checkpoints_a100/Full_v3_5_SafetyLoRA_best.pt" 2>/dev/null | awk '{print $9, "("$5")"}')"
-    echo "  - A100 Outputs & Plots         : $(ls -1 "${LOCAL_ROOT}/outputs_a100/"* 2>/dev/null | wc -l) files"
+    echo "  - A100 Outputs & Plots         : $(find "${LOCAL_ROOT}/outputs_a100" -type f 2>/dev/null | wc -l) files (incl. paper_supplement tables & 6 figures)"
     if [ -f "${LOCAL_ROOT}/logs_a100/pro256_metrics.csv" ]; then
         echo "  - Latest v3.5-LoRA & v4.0-Chronos Metrics (logs_a100/pro256_metrics.csv):"
         tail -n 6 "${LOCAL_ROOT}/logs_a100/pro256_metrics.csv" | sed 's/^/      /'
@@ -240,6 +241,9 @@ if [ "${MODE}" == "--restore-only" ]; then
     echo "----------------------------------------------------------------------"
 elif [ "${MODE}" == "--eval-only" ]; then
     python3 -u "${LOCAL_ROOT}/src_a100/evaluate_and_visualize.py"
+    sync_local_to_gdrive
+elif [ "${MODE}" == "--paper-supplement" ]; then
+    python3 -u "${LOCAL_ROOT}/src_a100/run_paper_supplement.py"
     sync_local_to_gdrive
 elif [ "${MODE}" == "--resume-v4-chronos" ]; then
     python3 -u "${LOCAL_ROOT}/src_a100/train_v4_chronos.py" --mode v4_chronos --epochs 22 --batch_size 20 2>&1 | tee -a "${LOCAL_ROOT}/logs_a100/v4_chronos_run.log"
@@ -264,7 +268,7 @@ elif [ "${MODE}" == "--smoke-test" ]; then
     sync_local_to_gdrive
 else
     echo "[WARN] Unknown mode '${MODE}'. Supported modes:"
-    echo "  --restore-only | --eval-only | --resume-v4-chronos | --resume-v3-5-lora | --resume-v3-ultra | --resume-pro256 | --full-train | --smoke-test | --sync-to-gdrive"
+    echo "  --restore-only | --eval-only | --paper-supplement | --resume-v4-chronos | --resume-v3-5-lora | --resume-v3-ultra | --resume-pro256 | --full-train | --smoke-test | --sync-to-gdrive"
     exit 1
 fi
 

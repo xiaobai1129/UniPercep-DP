@@ -69,14 +69,16 @@ UniPercep_DP/ (本地 /root/workspace/ceshi 与谷歌云盘 100% 镜像同步)
 │   ├── train_and_ablation.py         # v1 四阶段渐进训练与消融实验脚本
 │   ├── train_pro256.py               # v2 Pro256 与 v3 Ultra 训练脚本
 │   ├── train_v4_chronos.py           # v3.5 SafetyLoRA 与 v4.0 Chronos 全量/微调训练脚本
-│   └── evaluate_and_visualize.py     # 全量验证集评测与 6 联对比大图渲染脚本
+│   ├── models_v3_5_lora.py           # v3.5 SafetyLoRA 独立导出模块
+│   ├── evaluate_and_visualize.py     # 全量验证集评测与 6 联对比大图渲染脚本
+│   └── run_paper_supplement.py       # 对标 IEEE TPAMI TransFuser 纯推理补充实验 (Exp 1~4) 与顶刊图表 (Fig 1~6) 脚本
 ├── src/                              # v0 Mini 原型源码
 ├── dataset_full/                     # A100 全量数据集 (3,600 关键帧 / 14,400 增强样本)
 │   ├── processed_unipercep_full.tar.gz # 云盘持久化压缩包 (420 MB)
 │   ├── train_full.jsonl              # 全量训练集索引 (2,880 关键帧 / 11,520 样本)
 │   └── val_full.jsonl                # 全量验证集索引 (720 关键帧)
 ├── dataset/                          # v0 Mini 数据集 (404 帧, 40 MB)
-├── checkpoints_a100/                 # A100 全部代际模型权重 (共 17 个 .pt 文件, ~5.1 GB)
+├── checkpoints_a100/                 # A100 全部代际模型权重 (共 24 个 .pt 文件, ~4.0 GB)
 │   ├── Full_v4_Chronos_best.pt       # [最终版 v4.0] 时空 4D 全量架构最优权重 (300 MB)
 │   ├── Full_v3_5_SafetyLoRA_best.pt  # [v3.5] Safety-LoRA 轻量微调最优权重 (299 MB)
 │   ├── Full_v3_Ultra_best.pt         # [v3] Ultra 架构最优权重 (299 MB)
@@ -91,8 +93,12 @@ UniPercep_DP/ (本地 /root/workspace/ceshi 与谷歌云盘 100% 镜像同步)
 │   └── pro256_run.log                # v2 Pro256 训练日志
 └── outputs_a100/                     # 评测汇总报告与高分辨率可视化图表
     ├── final_ablation_report.md      # 跨代际与消融实验完整量化对比报告
-    ├── evaluation_summary_a100.json  # JSON 格式指标汇总
-    ├── metrics_comparison_chart.png  # 多指标柱状对比图
-    ├── training_convergence_curves.png # 训练收敛曲线图
-    └── qualitative_6panel_sample_*.png # 6 联多任务感知与可微规划可视化大图
+    ├── final_metrics.json            # JSON 格式指标汇总
+    ├── training_convergence_curves.png # 60 Epochs 训练收敛曲线图
+    ├── a100_full_demo_sample_0~9.png # 10 张 6 联多任务感知与可微规划可视化大图
+    └── paper_supplement/             # IEEE TPAMI 顶刊补充实验表格 (Exp 1~4) 与矢量图表 (Fig 1~6)
+        ├── paper_supplement_tables.md
+        ├── paper_supplement_metrics.json
+        ├── exp1~exp4_*.csv
+        └── figures/ (fig1~fig6 .png 300 DPI + .pdf Vector)
 ```
