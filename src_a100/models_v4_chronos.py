@@ -444,6 +444,12 @@ class ChronosCTRASafetyPlanner256(nn.Module):
 
         # 4. Apply Differentiable CBF Class-2 Dynamic Obstacle Safety Projection
         safe_traj = self.apply_cbf_safety_projection(refined_traj, seg_logits_256, small_hm_256, pred_risk_256)
+        self.last_intermediates = {
+            "ctra_base_128": ctra_base_128,
+            "blended_traj": blended_traj,
+            "refined_traj": refined_traj,
+            "safe_traj": safe_traj,
+        }
         return pred_risk_256, dp_value_256, safe_traj
 
 
@@ -622,6 +628,7 @@ class UniPercepDPNet_v3_5_LoRA(nn.Module):
             use_dp_lora=True,
         )
 
+        inter = getattr(self.chronos_planner, "last_intermediates", {})
         return {
             "pred_clean_img": pred_clean_img,
             "multi_label_logits": multi_label_logits,
@@ -631,6 +638,10 @@ class UniPercepDPNet_v3_5_LoRA(nn.Module):
             "pred_risk_256": pred_risk_256,
             "dp_value_256": dp_value_256,
             "pred_traj": pred_traj,
+            "ctra_base_128": inter.get("ctra_base_128", pred_traj),
+            "blended_traj": inter.get("blended_traj", pred_traj),
+            "refined_traj": inter.get("refined_traj", pred_traj),
+            "safe_traj": inter.get("safe_traj", pred_traj),
             "dp_weights": dp_weights,
             "rag_rule_idx": rag_rule_idx,
         }
@@ -823,6 +834,7 @@ class UniPercepDPNet_v4_Chronos(nn.Module):
             use_dp_lora=True,
         )
 
+        inter = getattr(self.chronos_planner, "last_intermediates", {})
         return {
             "pred_clean_img": pred_clean_img,
             "multi_label_logits": multi_label_logits,
@@ -832,6 +844,10 @@ class UniPercepDPNet_v4_Chronos(nn.Module):
             "pred_risk_256": pred_risk_256,
             "dp_value_256": dp_value_256,
             "pred_traj": pred_traj,
+            "ctra_base_128": inter.get("ctra_base_128", pred_traj),
+            "blended_traj": inter.get("blended_traj", pred_traj),
+            "refined_traj": inter.get("refined_traj", pred_traj),
+            "safe_traj": inter.get("safe_traj", pred_traj),
             "dp_weights": dp_weights,
             "rag_rule_idx": rag_rule_idx,
         }

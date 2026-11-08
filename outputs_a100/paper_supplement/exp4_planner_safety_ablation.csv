@@ -1,0 +1,7 @@
+Planner_Variant,ADE@1.0s_m,ADE@2.0s_m,ADE@3.0s_m,FDE@1.0s_m,FDE@2.0s_m,FDE@3.0s_m,Col_Rate_%,Mean_Accel_m_s2,Mean_Lat_Accel_m_s2,Mean_Jerk_m_s3,P95_Jerk_m_s3
+1. 1st-Order Linear Anchor (一阶常速度外推锚点),0.473,1.086,1.788,0.744,2.034,3.598,5.79,0.212,0.0,0.796,3.036
+2. 2nd-Order CTRA Physical Anchor (二阶物理运动学先验 `ctra_base_128`),0.447,1.011,1.657,0.701,1.882,3.33,5.05,0.483,0.123,0.787,3.036
+"3. CTRA + RAG-LoRA Residual (`blended_traj`, Before Transformer)",0.497,0.711,1.046,0.563,1.072,1.957,6.17,0.775,0.199,2.632,5.11
+"4. Before CBF Projection (`refined_traj`, w/o CBF)",0.33,0.596,0.954,0.432,1.028,1.909,4.91,0.678,0.237,2.272,4.92
+5. TransFuser Hard Safety Box Heuristic (规则硬减速安全框),2.097,3.524,4.97,2.801,5.67,8.598,0.75,0.373,0.13,1.249,2.706
+"6. Full UniPercep-DP (`safe_traj`, with 4-Step Differentiable CBF)",0.332,0.604,0.974,0.433,1.05,1.961,1.21,1.046,0.531,3.808,10.611

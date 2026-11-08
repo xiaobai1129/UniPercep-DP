@@ -1,0 +1,1250 @@
+{
+  "Experiment_1_MultiHorizon_Comfort_Efficiency": {
+    "Latent TransFuser": {
+      "N": 2140,
+      "Cls_Acc": 70.5,
+      "Cls_F1": 76.73,
+      "Det_AP": 4.73,
+      "Seg_mIoU": 31.08,
+      "ADE": 4.307,
+      "FDE": 7.506,
+      "Col_Rate": 11.82,
+      "ADE@1.0s": 1.799,
+      "ADE@2.0s": 3.035,
+      "ADE@3.0s": 4.307,
+      "FDE@1.0s": 2.411,
+      "FDE@2.0s": 4.893,
+      "FDE@3.0s": 7.506,
+      "Step_L2_Mean_m": [
+        0.593,
+        1.187,
+        1.7954,
+        2.4114,
+        3.0295,
+        3.648,
+        4.2648,
+        4.8929,
+        5.5383,
+        6.1945,
+        6.8525,
+        7.5061
+      ],
+      "Step_L2_Std_m": [
+        0.394,
+        0.7733,
+        1.1588,
+        1.5439,
+        1.9182,
+        2.2927,
+        2.6792,
+        3.0759,
+        3.4803,
+        3.8946,
+        4.3186,
+        4.7494
+      ],
+      "Cum_ADE_12_m": [
+        0.593,
+        0.89,
+        1.1918,
+        1.4967,
+        1.8033,
+        2.1107,
+        2.4184,
+        2.7277,
+        3.04,
+        3.3555,
+        3.6734,
+        3.9928
+      ],
+      "Mean_Accel": 0.981,
+      "Mean_Lat_Accel": 0.405,
+      "Mean_Jerk": 3.454,
+      "P95_Jerk": 5.086,
+      "Mean_Curvature": 0.0098,
+      "Total_Params_M": 31.35,
+      "Trainable_Params_M": 30.82,
+      "Peak_VRAM_MB": 1560.4,
+      "Latency_Mean_ms": 15.98,
+      "Latency_Std_ms": 1.39,
+      "FPS_Hz": 62.6
+    },
+    "Latent TransFuser + SSL & LP-FT": {
+      "N": 2140,
+      "Cls_Acc": 70.86,
+      "Cls_F1": 75.3,
+      "Det_AP": 7.85,
+      "Seg_mIoU": 31.08,
+      "ADE": 4.465,
+      "FDE": 7.718,
+      "Col_Rate": 10.47,
+      "ADE@1.0s": 1.902,
+      "ADE@2.0s": 3.175,
+      "ADE@3.0s": 4.465,
+      "FDE@1.0s": 2.534,
+      "FDE@2.0s": 5.095,
+      "FDE@3.0s": 7.718,
+      "Step_L2_Mean_m": [
+        0.6443,
+        1.2698,
+        1.901,
+        2.5343,
+        3.163,
+        3.799,
+        4.4459,
+        5.0948,
+        5.7342,
+        6.375,
+        7.0312,
+        7.7178
+      ],
+      "Step_L2_Std_m": [
+        0.4529,
+        0.9209,
+        1.3904,
+        1.8544,
+        2.315,
+        2.7784,
+        3.2493,
+        3.7206,
+        4.1849,
+        4.6461,
+        5.111,
+        5.5856
+      ],
+      "Cum_ADE_12_m": [
+        0.6443,
+        0.9571,
+        1.2717,
+        1.5874,
+        1.9025,
+        2.2186,
+        2.5368,
+        2.8565,
+        3.1763,
+        3.4961,
+        3.8175,
+        4.1425
+      ],
+      "Mean_Accel": 0.886,
+      "Mean_Lat_Accel": 0.529,
+      "Mean_Jerk": 3.907,
+      "P95_Jerk": 7.385,
+      "Mean_Curvature": 0.0149,
+      "Total_Params_M": 31.35,
+      "Trainable_Params_M": 30.82,
+      "Peak_VRAM_MB": 482.5,
+      "Latency_Mean_ms": 16.59,
+      "Latency_Std_ms": 0.47,
+      "FPS_Hz": 60.3
+    },
+    "TransFuser": {
+      "N": 2140,
+      "Cls_Acc": 71.85,
+      "Cls_F1": 76.57,
+      "Det_AP": 45.87,
+      "Seg_mIoU": 57.93,
+      "ADE": 2.527,
+      "FDE": 4.511,
+      "Col_Rate": 7.94,
+      "ADE@1.0s": 1.022,
+      "ADE@2.0s": 1.749,
+      "ADE@3.0s": 2.527,
+      "FDE@1.0s": 1.364,
+      "FDE@2.0s": 2.852,
+      "FDE@3.0s": 4.511,
+      "Step_L2_Mean_m": [
+        0.3615,
+        0.6813,
+        1.0136,
+        1.3636,
+        1.726,
+        2.0983,
+        2.471,
+        2.8523,
+        3.2458,
+        3.6534,
+        4.0742,
+        4.5111
+      ],
+      "Step_L2_Std_m": [
+        0.3114,
+        0.617,
+        0.9249,
+        1.2333,
+        1.543,
+        1.8583,
+        2.1784,
+        2.499,
+        2.818,
+        3.1415,
+        3.4744,
+        3.8178
+      ],
+      "Cum_ADE_12_m": [
+        0.3615,
+        0.5214,
+        0.6855,
+        0.855,
+        1.0292,
+        1.2074,
+        1.3879,
+        1.571,
+        1.7571,
+        1.9467,
+        2.1401,
+        2.3377
+      ],
+      "Mean_Accel": 0.879,
+      "Mean_Lat_Accel": 0.645,
+      "Mean_Jerk": 3.867,
+      "P95_Jerk": 7.245,
+      "Mean_Curvature": 0.0273,
+      "Total_Params_M": 31.35,
+      "Trainable_Params_M": 30.82,
+      "Peak_VRAM_MB": 1255.7,
+      "Latency_Mean_ms": 20.1,
+      "Latency_Std_ms": 1.06,
+      "FPS_Hz": 49.7
+    },
+    "UniPercep-DP (Safety-LoRA)": {
+      "N": 2140,
+      "Cls_Acc": 81.36,
+      "Cls_F1": 83.64,
+      "Det_AP": 87.27,
+      "Seg_mIoU": 68.87,
+      "ADE": 1.033,
+      "FDE": 2.103,
+      "Col_Rate": 1.73,
+      "ADE@1.0s": 0.356,
+      "ADE@2.0s": 0.635,
+      "ADE@3.0s": 1.033,
+      "FDE@1.0s": 0.446,
+      "FDE@2.0s": 1.091,
+      "FDE@3.0s": 2.103,
+      "Step_L2_Mean_m": [
+        0.1864,
+        0.266,
+        0.3426,
+        0.4456,
+        0.5803,
+        0.7355,
+        0.9015,
+        1.0911,
+        1.2998,
+        1.5558,
+        1.8245,
+        2.1026
+      ],
+      "Step_L2_Std_m": [
+        0.217,
+        0.3574,
+        0.5,
+        0.6589,
+        0.8226,
+        0.9914,
+        1.1602,
+        1.3462,
+        1.5381,
+        1.7567,
+        1.9713,
+        2.1668
+      ],
+      "Cum_ADE_12_m": [
+        0.1864,
+        0.2262,
+        0.265,
+        0.3102,
+        0.3642,
+        0.4261,
+        0.494,
+        0.5686,
+        0.6499,
+        0.7405,
+        0.839,
+        0.9443
+      ],
+      "Mean_Accel": 1.428,
+      "Mean_Lat_Accel": 0.881,
+      "Mean_Jerk": 5.284,
+      "P95_Jerk": 22.042,
+      "Mean_Curvature": 0.0386,
+      "Total_Params_M": 37.66,
+      "Trainable_Params_M": 4.15,
+      "Peak_VRAM_MB": 5949.1,
+      "Latency_Mean_ms": 71.6,
+      "Latency_Std_ms": 1.96,
+      "FPS_Hz": 14.0
+    },
+    "UniPercep-DP (Ours, Full v4)": {
+      "N": 2140,
+      "Cls_Acc": 83.29,
+      "Cls_F1": 85.33,
+      "Det_AP": 91.77,
+      "Seg_mIoU": 71.29,
+      "ADE": 0.974,
+      "FDE": 1.961,
+      "Col_Rate": 1.21,
+      "ADE@1.0s": 0.332,
+      "ADE@2.0s": 0.604,
+      "ADE@3.0s": 0.974,
+      "FDE@1.0s": 0.433,
+      "FDE@2.0s": 1.05,
+      "FDE@3.0s": 1.961,
+      "Step_L2_Mean_m": [
+        0.1479,
+        0.2313,
+        0.3256,
+        0.4328,
+        0.5567,
+        0.7012,
+        0.8658,
+        1.0496,
+        1.244,
+        1.4665,
+        1.71,
+        1.9613
+      ],
+      "Step_L2_Std_m": [
+        0.1883,
+        0.3469,
+        0.5009,
+        0.6597,
+        0.8201,
+        0.9759,
+        1.1297,
+        1.307,
+        1.4909,
+        1.7032,
+        1.9171,
+        2.109
+      ],
+      "Cum_ADE_12_m": [
+        0.1479,
+        0.1896,
+        0.2349,
+        0.2844,
+        0.3389,
+        0.3993,
+        0.4659,
+        0.5389,
+        0.6172,
+        0.7021,
+        0.7938,
+        0.8911
+      ],
+      "Mean_Accel": 1.046,
+      "Mean_Lat_Accel": 0.531,
+      "Mean_Jerk": 3.808,
+      "P95_Jerk": 10.611,
+      "Mean_Curvature": 0.0243,
+      "Total_Params_M": 37.77,
+      "Trainable_Params_M": 37.24,
+      "Peak_VRAM_MB": 1478.9,
+      "Latency_Mean_ms": 70.8,
+      "Latency_Std_ms": 5.47,
+      "FPS_Hz": 14.1,
+      "Submodule_Breakdown_ms": {
+        "a_Encoder_FPN_BEVFusion_ms": 28.75,
+        "a_Encoder_FPN_BEVFusion_std": 0.95,
+        "b_ThreeTask_Perception_Heads_ms": 6.77,
+        "b_ThreeTask_Perception_Heads_std": 0.79,
+        "c_RAGLoRA_CTRA_Transformer_CBF_Planner_ms": 35.97,
+        "c_RAGLoRA_CTRA_Transformer_CBF_Planner_std": 1.11
+      }
+    },
+    "Expert GT (Physical Reference)": {
+      "Mean_Accel": 0.727,
+      "Mean_Lat_Accel": 0.156,
+      "Mean_Jerk": 2.357,
+      "P95_Jerk": 9.215,
+      "Mean_Curvature": 0.0065
+    }
+  },
+  "Experiment_2_Degradation_And_Illumination": {
+    "Latent TransFuser": {
+      "Overall_Val": {
+        "N": 2140,
+        "Cls_Acc": 70.5,
+        "Cls_F1": 76.73,
+        "Det_AP": 4.73,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.307,
+        "FDE": 7.506,
+        "Col_Rate": 11.82
+      },
+      "Clean": {
+        "N": 2140,
+        "Cls_Acc": 71.22,
+        "Cls_F1": 71.77,
+        "Det_AP": 5.03,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.295,
+        "FDE": 7.494,
+        "Col_Rate": 11.59
+      },
+      "Mode_0_Mild_Noise": {
+        "N": 535,
+        "Cls_Acc": 65.7,
+        "Cls_F1": 71.56,
+        "Det_AP": 4.66,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.3,
+        "FDE": 7.497,
+        "Col_Rate": 11.78
+      },
+      "Mode_1_Color_Corrupt": {
+        "N": 535,
+        "Cls_Acc": 66.04,
+        "Cls_F1": 72.26,
+        "Det_AP": 4.73,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.307,
+        "FDE": 7.506,
+        "Col_Rate": 11.96
+      },
+      "Mode_2_Dense_Fog": {
+        "N": 535,
+        "Cls_Acc": 74.49,
+        "Cls_F1": 80.66,
+        "Det_AP": 4.96,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.315,
+        "FDE": 7.516,
+        "Col_Rate": 11.59
+      },
+      "Mode_3_Packet_Loss": {
+        "N": 535,
+        "Cls_Acc": 75.78,
+        "Cls_F1": 81.66,
+        "Det_AP": 4.56,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.306,
+        "FDE": 7.504,
+        "Col_Rate": 11.96
+      },
+      "Daytime": {
+        "N": 1976,
+        "Cls_Acc": 71.6,
+        "Cls_F1": 77.55,
+        "Det_AP": 4.36,
+        "Seg_mIoU": 31.11,
+        "ADE": 4.009,
+        "FDE": 6.973,
+        "Col_Rate": 10.53
+      },
+      "Nighttime": {
+        "N": 164,
+        "Cls_Acc": 57.2,
+        "Cls_F1": 67.2,
+        "Det_AP": 9.07,
+        "Seg_mIoU": 30.79,
+        "ADE": 7.89,
+        "FDE": 13.928,
+        "Col_Rate": 27.44
+      }
+    },
+    "Latent TransFuser + SSL & LP-FT": {
+      "Overall_Val": {
+        "N": 2140,
+        "Cls_Acc": 70.86,
+        "Cls_F1": 75.3,
+        "Det_AP": 7.85,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.465,
+        "FDE": 7.718,
+        "Col_Rate": 10.47
+      },
+      "Clean": {
+        "N": 2140,
+        "Cls_Acc": 69.95,
+        "Cls_F1": 72.42,
+        "Det_AP": 7.19,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.775,
+        "FDE": 8.229,
+        "Col_Rate": 11.03
+      },
+      "Mode_0_Mild_Noise": {
+        "N": 535,
+        "Cls_Acc": 72.95,
+        "Cls_F1": 75.25,
+        "Det_AP": 7.94,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.639,
+        "FDE": 7.999,
+        "Col_Rate": 11.21
+      },
+      "Mode_1_Color_Corrupt": {
+        "N": 535,
+        "Cls_Acc": 67.64,
+        "Cls_F1": 71.7,
+        "Det_AP": 7.42,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.414,
+        "FDE": 7.633,
+        "Col_Rate": 10.65
+      },
+      "Mode_2_Dense_Fog": {
+        "N": 535,
+        "Cls_Acc": 72.22,
+        "Cls_F1": 77.65,
+        "Det_AP": 8.43,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.365,
+        "FDE": 7.554,
+        "Col_Rate": 9.91
+      },
+      "Mode_3_Packet_Loss": {
+        "N": 535,
+        "Cls_Acc": 70.6,
+        "Cls_F1": 76.29,
+        "Det_AP": 7.6,
+        "Seg_mIoU": 31.08,
+        "ADE": 4.443,
+        "FDE": 7.685,
+        "Col_Rate": 10.09
+      },
+      "Daytime": {
+        "N": 1976,
+        "Cls_Acc": 72.71,
+        "Cls_F1": 76.68,
+        "Det_AP": 7.85,
+        "Seg_mIoU": 31.11,
+        "ADE": 4.291,
+        "FDE": 7.4,
+        "Col_Rate": 9.62
+      },
+      "Nighttime": {
+        "N": 164,
+        "Cls_Acc": 48.48,
+        "Cls_F1": 60.31,
+        "Det_AP": 7.81,
+        "Seg_mIoU": 30.79,
+        "ADE": 6.563,
+        "FDE": 11.547,
+        "Col_Rate": 20.73
+      }
+    },
+    "TransFuser": {
+      "Overall_Val": {
+        "N": 2140,
+        "Cls_Acc": 71.85,
+        "Cls_F1": 76.57,
+        "Det_AP": 45.87,
+        "Seg_mIoU": 57.93,
+        "ADE": 2.527,
+        "FDE": 4.511,
+        "Col_Rate": 7.94
+      },
+      "Clean": {
+        "N": 2140,
+        "Cls_Acc": 71.37,
+        "Cls_F1": 76.77,
+        "Det_AP": 45.22,
+        "Seg_mIoU": 57.88,
+        "ADE": 2.659,
+        "FDE": 4.711,
+        "Col_Rate": 9.16
+      },
+      "Mode_0_Mild_Noise": {
+        "N": 535,
+        "Cls_Acc": 73.29,
+        "Cls_F1": 76.08,
+        "Det_AP": 46.05,
+        "Seg_mIoU": 57.9,
+        "ADE": 2.566,
+        "FDE": 4.566,
+        "Col_Rate": 8.22
+      },
+      "Mode_1_Color_Corrupt": {
+        "N": 535,
+        "Cls_Acc": 69.33,
+        "Cls_F1": 73.55,
+        "Det_AP": 45.62,
+        "Seg_mIoU": 57.89,
+        "ADE": 2.531,
+        "FDE": 4.518,
+        "Col_Rate": 7.85
+      },
+      "Mode_2_Dense_Fog": {
+        "N": 535,
+        "Cls_Acc": 72.99,
+        "Cls_F1": 78.76,
+        "Det_AP": 46.01,
+        "Seg_mIoU": 58.02,
+        "ADE": 2.491,
+        "FDE": 4.46,
+        "Col_Rate": 7.85
+      },
+      "Mode_3_Packet_Loss": {
+        "N": 535,
+        "Cls_Acc": 71.78,
+        "Cls_F1": 77.59,
+        "Det_AP": 45.82,
+        "Seg_mIoU": 57.9,
+        "ADE": 2.519,
+        "FDE": 4.501,
+        "Col_Rate": 7.85
+      },
+      "Daytime": {
+        "N": 1976,
+        "Cls_Acc": 73.59,
+        "Cls_F1": 78.06,
+        "Det_AP": 46.13,
+        "Seg_mIoU": 57.58,
+        "ADE": 2.346,
+        "FDE": 4.18,
+        "Col_Rate": 6.07
+      },
+      "Nighttime": {
+        "N": 164,
+        "Cls_Acc": 50.79,
+        "Cls_F1": 58.38,
+        "Det_AP": 42.81,
+        "Seg_mIoU": 60.3,
+        "ADE": 4.698,
+        "FDE": 8.498,
+        "Col_Rate": 30.49
+      }
+    },
+    "UniPercep-DP (Safety-LoRA)": {
+      "Overall_Val": {
+        "N": 2140,
+        "Cls_Acc": 81.36,
+        "Cls_F1": 83.64,
+        "Det_AP": 87.27,
+        "Seg_mIoU": 68.87,
+        "ADE": 1.033,
+        "FDE": 2.103,
+        "Col_Rate": 1.73
+      },
+      "Clean": {
+        "N": 2140,
+        "Cls_Acc": 77.02,
+        "Cls_F1": 81.73,
+        "Det_AP": 86.6,
+        "Seg_mIoU": 68.99,
+        "ADE": 1.043,
+        "FDE": 2.116,
+        "Col_Rate": 1.68
+      },
+      "Mode_0_Mild_Noise": {
+        "N": 535,
+        "Cls_Acc": 81.31,
+        "Cls_F1": 81.92,
+        "Det_AP": 86.95,
+        "Seg_mIoU": 68.94,
+        "ADE": 1.036,
+        "FDE": 2.103,
+        "Col_Rate": 1.87
+      },
+      "Mode_1_Color_Corrupt": {
+        "N": 535,
+        "Cls_Acc": 81.85,
+        "Cls_F1": 82.86,
+        "Det_AP": 87.3,
+        "Seg_mIoU": 68.83,
+        "ADE": 1.034,
+        "FDE": 2.106,
+        "Col_Rate": 1.68
+      },
+      "Mode_2_Dense_Fog": {
+        "N": 535,
+        "Cls_Acc": 80.65,
+        "Cls_F1": 84.23,
+        "Det_AP": 87.38,
+        "Seg_mIoU": 68.85,
+        "ADE": 1.035,
+        "FDE": 2.11,
+        "Col_Rate": 1.31
+      },
+      "Mode_3_Packet_Loss": {
+        "N": 535,
+        "Cls_Acc": 81.63,
+        "Cls_F1": 85.16,
+        "Det_AP": 87.46,
+        "Seg_mIoU": 68.86,
+        "ADE": 1.027,
+        "FDE": 2.092,
+        "Col_Rate": 2.06
+      },
+      "Daytime": {
+        "N": 1976,
+        "Cls_Acc": 82.66,
+        "Cls_F1": 84.65,
+        "Det_AP": 88.46,
+        "Seg_mIoU": 68.6,
+        "ADE": 0.997,
+        "FDE": 2.041,
+        "Col_Rate": 0.51
+      },
+      "Nighttime": {
+        "N": 164,
+        "Cls_Acc": 65.67,
+        "Cls_F1": 72.71,
+        "Det_AP": 73.1,
+        "Seg_mIoU": 70.19,
+        "ADE": 1.463,
+        "FDE": 2.849,
+        "Col_Rate": 16.46
+      }
+    },
+    "UniPercep-DP (Ours, Full v4)": {
+      "Overall_Val": {
+        "N": 2140,
+        "Cls_Acc": 83.29,
+        "Cls_F1": 85.33,
+        "Det_AP": 91.77,
+        "Seg_mIoU": 71.29,
+        "ADE": 0.974,
+        "FDE": 1.961,
+        "Col_Rate": 1.21
+      },
+      "Clean": {
+        "N": 2140,
+        "Cls_Acc": 77.84,
+        "Cls_F1": 82.8,
+        "Det_AP": 91.61,
+        "Seg_mIoU": 71.29,
+        "ADE": 0.977,
+        "FDE": 1.967,
+        "Col_Rate": 1.31
+      },
+      "Mode_0_Mild_Noise": {
+        "N": 535,
+        "Cls_Acc": 82.49,
+        "Cls_F1": 83.05,
+        "Det_AP": 91.59,
+        "Seg_mIoU": 71.31,
+        "ADE": 0.977,
+        "FDE": 1.97,
+        "Col_Rate": 0.75
+      },
+      "Mode_1_Color_Corrupt": {
+        "N": 535,
+        "Cls_Acc": 83.89,
+        "Cls_F1": 84.67,
+        "Det_AP": 91.72,
+        "Seg_mIoU": 71.29,
+        "ADE": 0.974,
+        "FDE": 1.96,
+        "Col_Rate": 1.31
+      },
+      "Mode_2_Dense_Fog": {
+        "N": 535,
+        "Cls_Acc": 82.58,
+        "Cls_F1": 85.77,
+        "Det_AP": 91.93,
+        "Seg_mIoU": 71.28,
+        "ADE": 0.972,
+        "FDE": 1.956,
+        "Col_Rate": 1.12
+      },
+      "Mode_3_Packet_Loss": {
+        "N": 535,
+        "Cls_Acc": 84.21,
+        "Cls_F1": 87.34,
+        "Det_AP": 91.84,
+        "Seg_mIoU": 71.29,
+        "ADE": 0.973,
+        "FDE": 1.959,
+        "Col_Rate": 1.68
+      },
+      "Daytime": {
+        "N": 1976,
+        "Cls_Acc": 84.18,
+        "Cls_F1": 85.94,
+        "Det_AP": 92.58,
+        "Seg_mIoU": 71.06,
+        "ADE": 0.925,
+        "FDE": 1.873,
+        "Col_Rate": 0.61
+      },
+      "Nighttime": {
+        "N": 164,
+        "Cls_Acc": 72.56,
+        "Cls_F1": 79.01,
+        "Det_AP": 82.04,
+        "Seg_mIoU": 72.16,
+        "ADE": 1.559,
+        "FDE": 3.022,
+        "Col_Rate": 8.54
+      }
+    }
+  },
+  "Experiment_3_10Scenarios_Breakdown": {
+    "0": {
+      "scenario_id": 0,
+      "name": "0: Night (夜间低照度)",
+      "short_name": "Night",
+      "N_k": 164,
+      "models": {
+        "Latent TransFuser": {
+          "N": 164,
+          "Cls_Acc": 57.2,
+          "Cls_F1": 67.2,
+          "Det_AP": 9.07,
+          "Seg_mIoU": 30.79,
+          "ADE": 7.89,
+          "FDE": 13.928,
+          "Col_Rate": 27.44
+        },
+        "TransFuser": {
+          "N": 164,
+          "Cls_Acc": 50.79,
+          "Cls_F1": 58.38,
+          "Det_AP": 42.81,
+          "Seg_mIoU": 60.3,
+          "ADE": 4.698,
+          "FDE": 8.498,
+          "Col_Rate": 30.49
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 164,
+          "Cls_Acc": 72.56,
+          "Cls_F1": 82.8,
+          "Det_AP": 82.04,
+          "Seg_mIoU": 72.16,
+          "ADE": 1.559,
+          "FDE": 3.022,
+          "Col_Rate": 8.54
+        }
+      }
+    },
+    "1": {
+      "scenario_id": 1,
+      "name": "1: Rain/Fog (雨雾散射)",
+      "short_name": "Rain/Fog",
+      "N_k": 1098,
+      "models": {
+        "Latent TransFuser": {
+          "N": 1098,
+          "Cls_Acc": 74.74,
+          "Cls_F1": 74.36,
+          "Det_AP": 4.92,
+          "Seg_mIoU": 31.08,
+          "ADE": 4.334,
+          "FDE": 7.563,
+          "Col_Rate": 12.39
+        },
+        "TransFuser": {
+          "N": 1098,
+          "Cls_Acc": 71.91,
+          "Cls_F1": 74.91,
+          "Det_AP": 45.76,
+          "Seg_mIoU": 58.05,
+          "ADE": 2.522,
+          "FDE": 4.521,
+          "Col_Rate": 8.56
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 1098,
+          "Cls_Acc": 82.92,
+          "Cls_F1": 91.3,
+          "Det_AP": 92.08,
+          "Seg_mIoU": 71.36,
+          "ADE": 0.998,
+          "FDE": 2.012,
+          "Col_Rate": 1.55
+        }
+      }
+    },
+    "2": {
+      "scenario_id": 2,
+      "name": "2: Intersection (无保护路口)",
+      "short_name": "Intersect.",
+      "N_k": 1216,
+      "models": {
+        "Latent TransFuser": {
+          "N": 1216,
+          "Cls_Acc": 75.58,
+          "Cls_F1": 77.03,
+          "Det_AP": 3.93,
+          "Seg_mIoU": 31.13,
+          "ADE": 4.55,
+          "FDE": 8.056,
+          "Col_Rate": 15.95
+        },
+        "TransFuser": {
+          "N": 1216,
+          "Cls_Acc": 72.31,
+          "Cls_F1": 70.65,
+          "Det_AP": 46.47,
+          "Seg_mIoU": 57.31,
+          "ADE": 2.358,
+          "FDE": 4.161,
+          "Col_Rate": 8.63
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 1216,
+          "Cls_Acc": 84.61,
+          "Cls_F1": 79.76,
+          "Det_AP": 91.55,
+          "Seg_mIoU": 69.95,
+          "ADE": 0.798,
+          "FDE": 1.622,
+          "Col_Rate": 0.99
+        }
+      }
+    },
+    "3": {
+      "scenario_id": 3,
+      "name": "3: Construction (施工锥桶)",
+      "short_name": "Construct.",
+      "N_k": 1132,
+      "models": {
+        "Latent TransFuser": {
+          "N": 1132,
+          "Cls_Acc": 74.62,
+          "Cls_F1": 74.94,
+          "Det_AP": 5.55,
+          "Seg_mIoU": 31.02,
+          "ADE": 4.482,
+          "FDE": 7.759,
+          "Col_Rate": 8.48
+        },
+        "TransFuser": {
+          "N": 1132,
+          "Cls_Acc": 76.53,
+          "Cls_F1": 75.17,
+          "Det_AP": 43.32,
+          "Seg_mIoU": 55.61,
+          "ADE": 2.744,
+          "FDE": 4.862,
+          "Col_Rate": 7.24
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 1132,
+          "Cls_Acc": 84.72,
+          "Cls_F1": 81.73,
+          "Det_AP": 93.64,
+          "Seg_mIoU": 68.37,
+          "ADE": 1.007,
+          "FDE": 2.009,
+          "Col_Rate": 1.59
+        }
+      }
+    },
+    "4": {
+      "scenario_id": 4,
+      "name": "4: Congestion (拥堵跟车)",
+      "short_name": "Congestion",
+      "N_k": 1760,
+      "models": {
+        "Latent TransFuser": {
+          "N": 1760,
+          "Cls_Acc": 73.44,
+          "Cls_F1": 84.92,
+          "Det_AP": 4.87,
+          "Seg_mIoU": 30.95,
+          "ADE": 4.193,
+          "FDE": 7.341,
+          "Col_Rate": 13.47
+        },
+        "TransFuser": {
+          "N": 1760,
+          "Cls_Acc": 74.05,
+          "Cls_F1": 84.52,
+          "Det_AP": 46.59,
+          "Seg_mIoU": 57.14,
+          "ADE": 2.436,
+          "FDE": 4.353,
+          "Col_Rate": 9.38
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 1760,
+          "Cls_Acc": 85.25,
+          "Cls_F1": 89.73,
+          "Det_AP": 95.57,
+          "Seg_mIoU": 70.34,
+          "ADE": 0.91,
+          "FDE": 1.854,
+          "Col_Rate": 1.25
+        }
+      }
+    },
+    "5": {
+      "scenario_id": 5,
+      "name": "5: PedCross (行人横穿)",
+      "short_name": "PedCross",
+      "N_k": 1112,
+      "models": {
+        "Latent TransFuser": {
+          "N": 1112,
+          "Cls_Acc": 76.38,
+          "Cls_F1": 75.41,
+          "Det_AP": 4.53,
+          "Seg_mIoU": 31.19,
+          "ADE": 4.279,
+          "FDE": 7.608,
+          "Col_Rate": 18.79
+        },
+        "TransFuser": {
+          "N": 1112,
+          "Cls_Acc": 74.59,
+          "Cls_F1": 74.05,
+          "Det_AP": 48.85,
+          "Seg_mIoU": 58.4,
+          "ADE": 2.228,
+          "FDE": 3.963,
+          "Col_Rate": 10.61
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 1112,
+          "Cls_Acc": 82.31,
+          "Cls_F1": 74.13,
+          "Det_AP": 94.73,
+          "Seg_mIoU": 71.58,
+          "ADE": 0.838,
+          "FDE": 1.754,
+          "Col_Rate": 1.17
+        }
+      }
+    },
+    "6": {
+      "scenario_id": 6,
+      "name": "6: FarSmallObj (远距小目标)",
+      "short_name": "FarSmallObj",
+      "N_k": 2124,
+      "models": {
+        "Latent TransFuser": {
+          "N": 2124,
+          "Cls_Acc": 70.7,
+          "Cls_F1": 88.28,
+          "Det_AP": 4.73,
+          "Seg_mIoU": 31.08,
+          "ADE": 4.299,
+          "FDE": 7.498,
+          "Col_Rate": 11.91
+        },
+        "TransFuser": {
+          "N": 2124,
+          "Cls_Acc": 72.0,
+          "Cls_F1": 88.19,
+          "Det_AP": 45.87,
+          "Seg_mIoU": 57.89,
+          "ADE": 2.516,
+          "FDE": 4.496,
+          "Col_Rate": 8.0
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 2124,
+          "Cls_Acc": 83.36,
+          "Cls_F1": 92.48,
+          "Det_AP": 91.77,
+          "Seg_mIoU": 71.25,
+          "ADE": 0.969,
+          "FDE": 1.953,
+          "Col_Rate": 1.22
+        }
+      }
+    },
+    "7": {
+      "scenario_id": 7,
+      "name": "7: FastApproach (高速逼近)",
+      "short_name": "FastAppr.",
+      "N_k": 1472,
+      "models": {
+        "Latent TransFuser": {
+          "N": 1472,
+          "Cls_Acc": 68.95,
+          "Cls_F1": 78.96,
+          "Det_AP": 5.0,
+          "Seg_mIoU": 31.04,
+          "ADE": 4.699,
+          "FDE": 8.194,
+          "Col_Rate": 13.65
+        },
+        "TransFuser": {
+          "N": 1472,
+          "Cls_Acc": 73.78,
+          "Cls_F1": 80.3,
+          "Det_AP": 44.42,
+          "Seg_mIoU": 57.26,
+          "ADE": 2.586,
+          "FDE": 4.606,
+          "Col_Rate": 9.44
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 1472,
+          "Cls_Acc": 83.65,
+          "Cls_F1": 83.31,
+          "Det_AP": 90.68,
+          "Seg_mIoU": 70.17,
+          "ADE": 0.91,
+          "FDE": 1.84,
+          "Col_Rate": 1.43
+        }
+      }
+    },
+    "8": {
+      "scenario_id": 8,
+      "name": "8: Occlusion (视野遮挡)",
+      "short_name": "Occlusion",
+      "N_k": 2028,
+      "models": {
+        "Latent TransFuser": {
+          "N": 2028,
+          "Cls_Acc": 71.46,
+          "Cls_F1": 87.48,
+          "Det_AP": 4.8,
+          "Seg_mIoU": 31.05,
+          "ADE": 4.264,
+          "FDE": 7.431,
+          "Col_Rate": 12.38
+        },
+        "TransFuser": {
+          "N": 2028,
+          "Cls_Acc": 72.76,
+          "Cls_F1": 87.41,
+          "Det_AP": 45.73,
+          "Seg_mIoU": 57.86,
+          "ADE": 2.504,
+          "FDE": 4.472,
+          "Col_Rate": 8.19
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 2028,
+          "Cls_Acc": 84.02,
+          "Cls_F1": 91.67,
+          "Det_AP": 92.27,
+          "Seg_mIoU": 71.24,
+          "ADE": 0.961,
+          "FDE": 1.941,
+          "Col_Rate": 1.18
+        }
+      }
+    },
+    "9": {
+      "scenario_id": 9,
+      "name": "9: Curve (急弯道)",
+      "short_name": "Curve",
+      "N_k": 232,
+      "models": {
+        "Latent TransFuser": {
+          "N": 232,
+          "Cls_Acc": 56.77,
+          "Cls_F1": 66.38,
+          "Det_AP": 4.07,
+          "Seg_mIoU": 30.9,
+          "ADE": 4.021,
+          "FDE": 7.517,
+          "Col_Rate": 19.83
+        },
+        "TransFuser": {
+          "N": 232,
+          "Cls_Acc": 60.99,
+          "Cls_F1": 68.01,
+          "Det_AP": 44.58,
+          "Seg_mIoU": 58.4,
+          "ADE": 2.762,
+          "FDE": 5.362,
+          "Col_Rate": 6.03
+        },
+        "UniPercep-DP (Ours, Full v4)": {
+          "N": 232,
+          "Cls_Acc": 79.31,
+          "Cls_F1": 76.59,
+          "Det_AP": 91.81,
+          "Seg_mIoU": 71.57,
+          "ADE": 1.317,
+          "FDE": 2.845,
+          "Col_Rate": 0.0
+        }
+      }
+    }
+  },
+  "Experiment_4_Planner_Safety_Ablation": {
+    "1st_Order_Linear": {
+      "Label": "1. 1st-Order Linear Anchor (一阶常速度外推锚点)",
+      "ADE@1.0s": 0.473,
+      "ADE@2.0s": 1.086,
+      "ADE@3.0s": 1.788,
+      "FDE@1.0s": 0.744,
+      "FDE@2.0s": 2.034,
+      "FDE@3.0s": 3.598,
+      "Col_Rate": 5.79,
+      "Mean_Accel": 0.212,
+      "Mean_Lat_Accel": 0.0,
+      "Mean_Jerk": 0.796,
+      "P95_Jerk": 3.036,
+      "Mean_Curvature": 0.0
+    },
+    "2nd_Order_CTRA": {
+      "Label": "2. 2nd-Order CTRA Physical Anchor (二阶物理运动学先验 `ctra_base_128`)",
+      "ADE@1.0s": 0.447,
+      "ADE@2.0s": 1.011,
+      "ADE@3.0s": 1.657,
+      "FDE@1.0s": 0.701,
+      "FDE@2.0s": 1.882,
+      "FDE@3.0s": 3.33,
+      "Col_Rate": 5.05,
+      "Mean_Accel": 0.483,
+      "Mean_Lat_Accel": 0.123,
+      "Mean_Jerk": 0.787,
+      "P95_Jerk": 3.036,
+      "Mean_Curvature": 0.0061
+    },
+    "CTRA_RAG_LoRA_Blended": {
+      "Label": "3. CTRA + RAG-LoRA Residual (`blended_traj`, Before Transformer)",
+      "ADE@1.0s": 0.497,
+      "ADE@2.0s": 0.711,
+      "ADE@3.0s": 1.046,
+      "FDE@1.0s": 0.563,
+      "FDE@2.0s": 1.072,
+      "FDE@3.0s": 1.957,
+      "Col_Rate": 6.17,
+      "Mean_Accel": 0.775,
+      "Mean_Lat_Accel": 0.199,
+      "Mean_Jerk": 2.632,
+      "P95_Jerk": 5.11,
+      "Mean_Curvature": 0.0118
+    },
+    "Before_CBF_Refined": {
+      "Label": "4. Before CBF Projection (`refined_traj`, w/o CBF)",
+      "ADE@1.0s": 0.33,
+      "ADE@2.0s": 0.596,
+      "ADE@3.0s": 0.954,
+      "FDE@1.0s": 0.432,
+      "FDE@2.0s": 1.028,
+      "FDE@3.0s": 1.909,
+      "Col_Rate": 4.91,
+      "Mean_Accel": 0.678,
+      "Mean_Lat_Accel": 0.237,
+      "Mean_Jerk": 2.272,
+      "P95_Jerk": 4.92,
+      "Mean_Curvature": 0.0124
+    },
+    "TransFuser_Hard_Box": {
+      "Label": "5. TransFuser Hard Safety Box Heuristic (规则硬减速安全框)",
+      "ADE@1.0s": 2.097,
+      "ADE@2.0s": 3.524,
+      "ADE@3.0s": 4.97,
+      "FDE@1.0s": 2.801,
+      "FDE@2.0s": 5.67,
+      "FDE@3.0s": 8.598,
+      "Col_Rate": 0.75,
+      "Mean_Accel": 0.373,
+      "Mean_Lat_Accel": 0.13,
+      "Mean_Jerk": 1.249,
+      "P95_Jerk": 2.706,
+      "Mean_Curvature": 0.0225
+    },
+    "Full_CBF_Safe": {
+      "Label": "6. Full UniPercep-DP (`safe_traj`, with 4-Step Differentiable CBF)",
+      "ADE@1.0s": 0.332,
+      "ADE@2.0s": 0.604,
+      "ADE@3.0s": 0.974,
+      "FDE@1.0s": 0.433,
+      "FDE@2.0s": 1.05,
+      "FDE@3.0s": 1.961,
+      "Col_Rate": 1.21,
+      "Mean_Accel": 1.046,
+      "Mean_Lat_Accel": 0.531,
+      "Mean_Jerk": 3.808,
+      "P95_Jerk": 10.611,
+      "Mean_Curvature": 0.0243
+    }
+  }
+}

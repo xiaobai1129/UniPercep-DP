@@ -65,8 +65,23 @@ class UniPercepFullDataset(Dataset):
     and multi-level degradation synthesis.
     """
 
-    def __init__(self, jsonl_path: Path, data_root: Path, max_samples: int = None):
-        self.data_root = data_root
+    _shared_ram_cache = {}
+
+    def __init__(self, jsonl_path: Path, data_root: Path = None, max_samples: int = None, is_train: bool = False, force_clean: bool = False):
+        p1 = Path(jsonl_path)
+        p2 = Path(data_root) if data_root is not None else PROCESSED_DIR
+        if p1.is_dir() and str(p2).endswith(".jsonl"):
+            # Support (data_root, "dataset_full/val_full.jsonl", is_train=False) signature
+            root_dir = p1
+            jl = p2 if p2.is_absolute() else (root_dir / p2)
+            self.data_root = root_dir / "dataset_full" / "processed" if (root_dir / "dataset_full" / "processed").exists() else root_dir
+            jsonl_path = jl
+        else:
+            self.data_root = p2
+            jsonl_path = p1
+
+        self.is_train = is_train
+        self.force_clean = force_clean
         self.samples = []
         with open(jsonl_path, "r", encoding="utf-8") as f:
             for line in f:
@@ -80,7 +95,7 @@ class UniPercepFullDataset(Dataset):
         yy, xx = np.mgrid[0:GRID_SIZE, 0:GRID_SIZE].astype(np.float32)
         self.xx_grid = xx
         self.yy_grid = yy
-        self._ram_cache = {}
+        self._ram_cache = UniPercepFullDataset._shared_ram_cache
 
     def __len__(self):
         return len(self.samples)
@@ -145,7 +160,9 @@ class UniPercepFullDataset(Dataset):
         deg_mode = rec.get("deg_mode", 1)
 
         clean_f = base["clean_rgb"].astype(np.float32) / 255.0
-        if deg_mode == 0:
+        if getattr(self, "force_clean", False):
+            corrupt_f = clean_f
+        elif deg_mode == 0:
             # Mild compression / slight noise mix
             corrupt_f = 0.7 * clean_f + 0.3 * (base["corrupt_rgb"].astype(np.float32) / 255.0)
         elif deg_mode == 1:

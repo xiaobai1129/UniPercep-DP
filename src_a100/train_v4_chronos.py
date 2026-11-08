@@ -42,10 +42,19 @@ class UniPercepChronos256Dataset(Dataset):
     _ram_cache = {}
     _kf_meta = {}
 
-    def __init__(self, jsonl_path: Path, is_train: bool = True, max_samples: int = None, cam_hw=(192, 320)):
+    def __init__(self, jsonl_path: Path, second_arg=True, is_train: bool = True, max_samples: int = None, cam_hw=(192, 320), force_clean: bool = False):
+        p1 = Path(jsonl_path)
+        if isinstance(second_arg, (str, Path)) and str(second_arg).endswith(".jsonl"):
+            # Support UniPercepChronos256Dataset(data_root, "dataset_full/val_full.jsonl", is_train=False, cam_hw=(192, 320))
+            p2 = Path(second_arg)
+            jsonl_path = p2 if p2.is_absolute() else (p1 / p2)
+            self.is_train = is_train
+        else:
+            self.is_train = bool(second_arg) if isinstance(second_arg, bool) else is_train
+
         self.items = []
-        self.is_train = is_train
         self.cam_hw = cam_hw
+        self.force_clean = force_clean
 
         with open(jsonl_path, "r", encoding="utf-8") as f:
             for line in f:
@@ -189,7 +198,9 @@ class UniPercepChronos256Dataset(Dataset):
 
         cached = self._get_or_load_keyframe(rec)
 
-        if deg_mode == 0:
+        if getattr(self, "force_clean", False):
+            front_deg = cached["clean_front_resized"]
+        elif deg_mode == 0:
             front_deg = (
                 0.7 * cached["clean_front_resized"].astype(np.float32)
                 + 0.3 * cached["corrupt_front_resized"].astype(np.float32)
@@ -226,6 +237,8 @@ class UniPercepChronos256Dataset(Dataset):
         )
 
         return {
+            "keyframe_idx": kf_idx,
+            "deg_mode": deg_mode,
             "clean_img": clean_front,
             "corrupted_imgs": corrupted_front,
             "bev_lidar_256": cached["bev_256"],

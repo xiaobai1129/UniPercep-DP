@@ -1,0 +1,31 @@
+Scenario_ID,Scenario_Name,N_k,Model,Binary_Cls_F1_%,Det_AP_%,Seg_mIoU_%,ADE_m,FDE_m,Col_Rate_%
+0,0: Night (夜间低照度),164,Latent TransFuser,67.2,9.07,30.79,7.89,13.928,27.44
+0,0: Night (夜间低照度),164,TransFuser,58.38,42.81,60.3,4.698,8.498,30.49
+0,0: Night (夜间低照度),164,"UniPercep-DP (Ours, Full v4)",82.8,82.04,72.16,1.559,3.022,8.54
+1,1: Rain/Fog (雨雾散射),1098,Latent TransFuser,74.36,4.92,31.08,4.334,7.563,12.39
+1,1: Rain/Fog (雨雾散射),1098,TransFuser,74.91,45.76,58.05,2.522,4.521,8.56
+1,1: Rain/Fog (雨雾散射),1098,"UniPercep-DP (Ours, Full v4)",91.3,92.08,71.36,0.998,2.012,1.55
+2,2: Intersection (无保护路口),1216,Latent TransFuser,77.03,3.93,31.13,4.55,8.056,15.95
+2,2: Intersection (无保护路口),1216,TransFuser,70.65,46.47,57.31,2.358,4.161,8.63
+2,2: Intersection (无保护路口),1216,"UniPercep-DP (Ours, Full v4)",79.76,91.55,69.95,0.798,1.622,0.99
+3,3: Construction (施工锥桶),1132,Latent TransFuser,74.94,5.55,31.02,4.482,7.759,8.48
+3,3: Construction (施工锥桶),1132,TransFuser,75.17,43.32,55.61,2.744,4.862,7.24
+3,3: Construction (施工锥桶),1132,"UniPercep-DP (Ours, Full v4)",81.73,93.64,68.37,1.007,2.009,1.59
+4,4: Congestion (拥堵跟车),1760,Latent TransFuser,84.92,4.87,30.95,4.193,7.341,13.47
+4,4: Congestion (拥堵跟车),1760,TransFuser,84.52,46.59,57.14,2.436,4.353,9.38
+4,4: Congestion (拥堵跟车),1760,"UniPercep-DP (Ours, Full v4)",89.73,95.57,70.34,0.91,1.854,1.25
+5,5: PedCross (行人横穿),1112,Latent TransFuser,75.41,4.53,31.19,4.279,7.608,18.79
+5,5: PedCross (行人横穿),1112,TransFuser,74.05,48.85,58.4,2.228,3.963,10.61
+5,5: PedCross (行人横穿),1112,"UniPercep-DP (Ours, Full v4)",74.13,94.73,71.58,0.838,1.754,1.17
+6,6: FarSmallObj (远距小目标),2124,Latent TransFuser,88.28,4.73,31.08,4.299,7.498,11.91
+6,6: FarSmallObj (远距小目标),2124,TransFuser,88.19,45.87,57.89,2.516,4.496,8.0
+6,6: FarSmallObj (远距小目标),2124,"UniPercep-DP (Ours, Full v4)",92.48,91.77,71.25,0.969,1.953,1.22
+7,7: FastApproach (高速逼近),1472,Latent TransFuser,78.96,5.0,31.04,4.699,8.194,13.65
+7,7: FastApproach (高速逼近),1472,TransFuser,80.3,44.42,57.26,2.586,4.606,9.44
+7,7: FastApproach (高速逼近),1472,"UniPercep-DP (Ours, Full v4)",83.31,90.68,70.17,0.91,1.84,1.43
+8,8: Occlusion (视野遮挡),2028,Latent TransFuser,87.48,4.8,31.05,4.264,7.431,12.38
+8,8: Occlusion (视野遮挡),2028,TransFuser,87.41,45.73,57.86,2.504,4.472,8.19
+8,8: Occlusion (视野遮挡),2028,"UniPercep-DP (Ours, Full v4)",91.67,92.27,71.24,0.961,1.941,1.18
+9,9: Curve (急弯道),232,Latent TransFuser,66.38,4.07,30.9,4.021,7.517,19.83
+9,9: Curve (急弯道),232,TransFuser,68.01,44.58,58.4,2.762,5.362,6.03
+9,9: Curve (急弯道),232,"UniPercep-DP (Ours, Full v4)",76.59,91.81,71.57,1.317,2.845,0.0
