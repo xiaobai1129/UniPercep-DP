@@ -2,25 +2,29 @@
 # ==============================================================================
 # UniPercep-DP: One-Click Cross-Instance State Restoration & Reproduction Script
 # ==============================================================================
-# Covers all project iterations:
+# Covers all 6 project generations:
 #   - v0 Mini Prototype   : src/, dataset/, checkpoints/, logs/, outputs/
 #   - v1 A100 Full & Abl. : src_a100/, dataset_full/, checkpoints_a100/, logs_a100/, outputs_a100/
 #   - v2 Pro256 (6-Upgr.) : src_a100/models_pro256.py, train_pro256.py, Full_Pro256_6Cam_best.pt
-#   - v3 Ultra (10-Upgr.) : src_a100/models_v3_ultra.py, Full_v3_Ultra_best.pt
+#   - v3 Ultra (10-Upgr.) : src_a100/models_v3_ultra.py, Full_v3_Ultra_best.pt, Full_v3_Ultra_ep5_backup.pt
+#   - v3.5 SafetyLoRA     : src_a100/models_v4_chronos.py, train_v4_chronos.py, Full_v3_5_SafetyLoRA_best.pt
+#   - v4.0 Chronos (Final): src_a100/models_v4_chronos.py, train_v4_chronos.py, Full_v4_Chronos_best.pt
 #   - Project Docs & Git  : 项目说明.md, README.md, plan.md, .gitignore, .git (git_repo_backup.tar.gz)
 #
 # Usage in a new instance:
 #   bash /content/gdrive/MyDrive/colab/UniPercep_DP/reproduce_all.sh [MODE]
 #
 # Available Modes:
-#   --restore-only    (Default) Restore full project state, datasets, checkpoints, logs & outputs
-#   --eval-only       Restore state + run A100 full evaluation & 6-panel visualization
-#   --resume-pro256   Restore state + resume/run v2 Full_Pro256_6Cam training (auto-syncs to GDrive)
-#   --resume-v3-ultra Restore state + resume/run v3 Full_v3_Ultra training (auto-syncs to GDrive)
-#   --full-train      Restore state + run full A100 4-stage & ablation training + evaluation
-#   --smoke-test      Restore state + run quick smoke test verification
-#   --sync-to-gdrive  Push all current local code, docs, git repo, logs, checkpoints & outputs to GDrive
-#   --start-daemon    Start background real-time local -> GDrive sync daemon (every 30s)
+#   --restore-only      (Default) Configure Python env & restore all code, datasets, checkpoints, logs, outputs & Git repo without re-training
+#   --eval-only         Restore state + run A100 evaluation & 6-panel visualization
+#   --resume-v4-chronos Restore state + run/resume v4.0 Full_v4_Chronos training (auto-syncs to GDrive)
+#   --resume-v3-5-lora  Restore state + run/resume v3.5 Full_v3_5_SafetyLoRA training (auto-syncs to GDrive)
+#   --resume-v3-ultra   Restore state + run/resume v3 Full_v3_Ultra training (auto-syncs to GDrive)
+#   --resume-pro256     Restore state + run/resume v2 Full_Pro256_6Cam training (auto-syncs to GDrive)
+#   --full-train        Restore state + run full A100 4-stage & ablation training + evaluation
+#   --smoke-test        Restore state + run quick smoke test verification
+#   --sync-to-gdrive    Push all current local code, docs, git repo, logs, checkpoints & outputs to GDrive
+#   --start-daemon      Start background real-time local -> GDrive sync daemon (every 30s)
 # ==============================================================================
 set -e
 
@@ -70,7 +74,7 @@ sync_local_to_gdrive() {
         [ -f "${LOCAL_ROOT}/dataset_full/${f}" ] && cp -uf "${LOCAL_ROOT}/dataset_full/${f}" "${GDRIVE_ROOT}/dataset_full/${f}"
     done
 
-    # 4. Checkpoints, logs, and outputs (both v0 mini and A100 v1/v2/v3)
+    # 4. Checkpoints, logs, and outputs (v0 mini and A100 v1/v2/v3/v3.5/v4.0)
     for subdir in checkpoints checkpoints_a100 logs logs_a100 outputs outputs_a100; do
         if [ -d "${LOCAL_ROOT}/${subdir}" ]; then
             if command -v rsync >/dev/null 2>&1; then
@@ -221,18 +225,27 @@ start_sync_daemon
 echo "[Step 5/5] Executing mode: ${MODE} ..."
 if [ "${MODE}" == "--restore-only" ]; then
     echo "----------------------------------------------------------------------"
-    echo "[OK] Full project state restored to ${LOCAL_ROOT}!"
-    echo "  - Source files (src_a100): $(ls -1 "${LOCAL_ROOT}/src_a100/"*.py 2>/dev/null | wc -l) files"
-    echo "  - Full dataset keyframes : $(ls -1 "${LOCAL_ROOT}/dataset_full/processed/images_clean" 2>/dev/null | wc -l) keyframes (14,400 augmented samples)"
-    echo "  - A100 Checkpoints       : $(ls -1 "${LOCAL_ROOT}/checkpoints_a100/"*.pt 2>/dev/null | wc -l) checkpoints ($(du -sh "${LOCAL_ROOT}/checkpoints_a100" 2>/dev/null | cut -f1))"
-    echo "  - A100 Outputs & Plots   : $(ls -1 "${LOCAL_ROOT}/outputs_a100/"* 2>/dev/null | wc -l) files"
+    echo "[OK] Full project state restored to ${LOCAL_ROOT} (No training triggered)!"
+    echo "  - Source files (src & src_a100): $(ls -1 "${LOCAL_ROOT}/src/"*.py "${LOCAL_ROOT}/src_a100/"*.py 2>/dev/null | wc -l) files"
+    echo "  - Full dataset keyframes       : $(ls -1 "${LOCAL_ROOT}/dataset_full/processed/images_clean" 2>/dev/null | wc -l) keyframes (14,400 augmented samples)"
+    echo "  - Mini dataset keyframes       : $(ls -1 "${LOCAL_ROOT}/dataset/processed_unipercep/images_clean" 2>/dev/null | wc -l) keyframes"
+    echo "  - A100 Checkpoints             : $(ls -1 "${LOCAL_ROOT}/checkpoints_a100/"*.pt 2>/dev/null | wc -l) checkpoints ($(du -sh "${LOCAL_ROOT}/checkpoints_a100" 2>/dev/null | cut -f1))"
+    echo "  - Final v4.0 Checkpoint        : $(ls -lh "${LOCAL_ROOT}/checkpoints_a100/Full_v4_Chronos_best.pt" 2>/dev/null | awk '{print $9, "("$5")"}')"
+    echo "  - Final v3.5 LoRA Checkpoint   : $(ls -lh "${LOCAL_ROOT}/checkpoints_a100/Full_v3_5_SafetyLoRA_best.pt" 2>/dev/null | awk '{print $9, "("$5")"}')"
+    echo "  - A100 Outputs & Plots         : $(ls -1 "${LOCAL_ROOT}/outputs_a100/"* 2>/dev/null | wc -l) files"
     if [ -f "${LOCAL_ROOT}/logs_a100/pro256_metrics.csv" ]; then
-        echo "  - Latest Pro256 / v3 Ultra Metrics (logs_a100/pro256_metrics.csv):"
-        tail -n 5 "${LOCAL_ROOT}/logs_a100/pro256_metrics.csv" | sed 's/^/      /'
+        echo "  - Latest v3.5-LoRA & v4.0-Chronos Metrics (logs_a100/pro256_metrics.csv):"
+        tail -n 6 "${LOCAL_ROOT}/logs_a100/pro256_metrics.csv" | sed 's/^/      /'
     fi
     echo "----------------------------------------------------------------------"
 elif [ "${MODE}" == "--eval-only" ]; then
     python3 -u "${LOCAL_ROOT}/src_a100/evaluate_and_visualize.py"
+    sync_local_to_gdrive
+elif [ "${MODE}" == "--resume-v4-chronos" ]; then
+    python3 -u "${LOCAL_ROOT}/src_a100/train_v4_chronos.py" --mode v4_chronos --epochs 22 --batch_size 20 2>&1 | tee -a "${LOCAL_ROOT}/logs_a100/v4_chronos_run.log"
+    sync_local_to_gdrive
+elif [ "${MODE}" == "--resume-v3-5-lora" ]; then
+    python3 -u "${LOCAL_ROOT}/src_a100/train_v4_chronos.py" --mode v3_5_lora --epochs 4 --batch_size 14 2>&1 | tee -a "${LOCAL_ROOT}/logs_a100/v3_5_lora_run.log"
     sync_local_to_gdrive
 elif [ "${MODE}" == "--resume-pro256" ]; then
     python3 -u "${LOCAL_ROOT}/src_a100/train_pro256.py" --epochs 35 --batch_size 24 2>&1 | tee -a "${LOCAL_ROOT}/logs_a100/pro256_run.log"
@@ -251,7 +264,7 @@ elif [ "${MODE}" == "--smoke-test" ]; then
     sync_local_to_gdrive
 else
     echo "[WARN] Unknown mode '${MODE}'. Supported modes:"
-    echo "  --restore-only | --eval-only | --resume-pro256 | --resume-v3-ultra | --full-train | --smoke-test | --sync-to-gdrive"
+    echo "  --restore-only | --eval-only | --resume-v4-chronos | --resume-v3-5-lora | --resume-v3-ultra | --resume-pro256 | --full-train | --smoke-test | --sync-to-gdrive"
     exit 1
 fi
 
