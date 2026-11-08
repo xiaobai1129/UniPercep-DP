@@ -1,0 +1,9 @@
+[v3.5-LoRA] Loaded 676 tensors from Full_v3_Ultra_best.pt!
+[Full_v3_5_SafetyLoRA] Loading 4D Temporal + 256x256 BEV Dataset (batch_size=14, cam_hw=(192, 320))...
+[W1108 06:02:50.769976912 CUDACachingAllocator.cpp:528] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 8388608, total: 85094825984).
+[W1108 06:02:50.039385754 CUDACachingAllocator.cpp:528] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 10485760, total: 85094825984).
+[Full_v3_5_SafetyLoRA][Ep 01/04] Loss=7.0900 | ML_Acc=81.42% (F1=84.04%) | SmallAP=83.17% | mIoU=67.88% | ADE=1.0582m (FDE=2.0831m) | Coll=2.01% | VRAM=18.1GB (1255.2s)
+[Full_v3_5_SafetyLoRA][Ep 02/04] Loss=5.5932 | ML_Acc=81.31% (F1=83.75%) | SmallAP=85.60% | mIoU=68.58% | ADE=1.0325m (FDE=2.0792m) | Coll=1.31% | VRAM=18.1GB (1188.0s)
+[Full_v3_5_SafetyLoRA][Ep 03/04] Loss=4.8791 | ML_Acc=81.28% (F1=83.51%) | SmallAP=86.88% | mIoU=68.78% | ADE=1.0157m (FDE=2.0674m) | Coll=2.06% | VRAM=18.1GB (1191.8s)
+[Full_v3_5_SafetyLoRA][Ep 04/04] Loss=4.4811 | ML_Acc=81.36% (F1=83.64%) | SmallAP=87.28% | mIoU=68.87% | ADE=1.0327m (FDE=2.1032m) | Coll=1.96% | VRAM=18.1GB (1190.6s)
+[SUCCESS] Full_v3_5_SafetyLoRA training finished!
