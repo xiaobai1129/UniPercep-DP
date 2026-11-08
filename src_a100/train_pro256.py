@@ -434,6 +434,10 @@ def main():
     asl_criterion = AsymmetricLoss()
     ce_weights = torch.tensor([1.0, 2.5, 4.5], device=device)
     ce_criterion = nn.CrossEntropyLoss(weight=ce_weights)
+    ce_per_pixel = nn.CrossEntropyLoss(weight=ce_weights, reduction="none")
+    laplacian_kernel = (
+        torch.tensor([[0.0, 1.0, 0.0], [1.0, -4.0, 1.0], [0.0, 1.0, 0.0]], device=device).view(1, 1, 3, 3)
+    )
 
     optimizer = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad], lr=5e-4, weight_decay=1e-4
@@ -462,14 +466,31 @@ def main():
             ]
         )
 
+    def _load_compatible_weights(target_net: nn.Module, src_sd: dict):
+        tgt_sd = target_net.state_dict()
+        cnt = 0
+        for k, v in src_sd.items():
+            if k in tgt_sd:
+                if tgt_sd[k].shape == v.shape:
+                    tgt_sd[k].copy_(v)
+                    cnt += 1
+                elif k.endswith("gru_cell.weight_ih") and v.shape[1] == 86 and tgt_sd[k].shape[1] == 88:
+                    tgt_sd[k].zero_()
+                    tgt_sd[k][:, :69].copy_(v[:, :69])
+                    tgt_sd[k][:, 71:88].copy_(v[:, 69:86])
+                    cnt += 1
+        target_net.load_state_dict(tgt_sd)
+        return cnt
+
     best_score = -1e9
     start_ep = 1
     resume_p = CKPT_DIR / f"{tag}_best.pt"
+    v2_warm_p = CKPT_DIR / "Full_Pro256_6Cam_best.pt"
     if resume_p.exists() and not args.pilot:
         try:
             ckpt = torch.load(resume_p, map_location=device, weights_only=False)
-            model.load_state_dict(ckpt["model"], strict=False)
-            ema.ema.load_state_dict(ckpt["ema"], strict=False)
+            _load_compatible_weights(model, ckpt["model"])
+            _load_compatible_weights(ema.ema, ckpt["ema"])
             start_ep = int(ckpt.get("epoch", 1)) + 1
             m_prev = ckpt.get("metrics", {})
             if m_prev:
@@ -483,6 +504,21 @@ def main():
             print(f"[RESUME] Loaded {resume_p.name} (Epoch {start_ep - 1}, best_score={best_score:.2f}), resuming from Epoch {start_ep}!")
         except Exception as e:
             print(f"[WARN] Could not resume from {resume_p}: {e}")
+    elif args.v3_ultra and (v2_warm_p.exists() or (CKPT_DIR / "Pilot_v3_Ultra_best.pt").exists()):
+        # Innovation #21: Dual Cross-Generation Warm-Start Knowledge Inheritance (Pilot_v3 + Full_v2)
+        try:
+            pilot_v3_p = CKPT_DIR / "Pilot_v3_Ultra_best.pt"
+            if not args.pilot and pilot_v3_p.exists():
+                pv3_ckpt = torch.load(pilot_v3_p, map_location=device, weights_only=False)
+                n_pv3 = _load_compatible_weights(model, pv3_ckpt.get("ema", pv3_ckpt["model"]))
+                print(f"[WARM-START] Pre-loaded {n_pv3} v3.0-Ultra tensors from {pilot_v3_p.name} into {tag}!")
+            if v2_warm_p.exists():
+                v2_ckpt = torch.load(v2_warm_p, map_location=device, weights_only=False)
+                n_m = _load_compatible_weights(model, v2_ckpt["model"])
+                print(f"[WARM-START] Inherited {n_m} converged v2.0-Pro256 tensors from {v2_warm_p.name} into {tag}!")
+            ema.ema.load_state_dict(model.state_dict())
+        except Exception as e:
+            print(f"[WARN] Warm-start inheritance skipped: {e}")
 
     for ep in range(start_ep, epochs + 1):
         t0 = time.time()
@@ -508,23 +544,58 @@ def main():
             with torch.amp.autocast("cuda", dtype=torch.bfloat16):
                 out = model(corrupted_imgs, bev_lidar_256, geo_14d)
 
-                loss_ssl = F.l1_loss(out["pred_clean_img"].float(), clean_img.float())
+                # Innovation #11: Spatial L1 + 2D-FFT Amplitude/Phase Consistency SSL Loss
+                pred_rgb_fp32 = out["pred_clean_img"].float()
+                clean_rgb_fp32 = clean_img.float()
+                loss_ssl_l1 = F.l1_loss(pred_rgb_fp32, clean_rgb_fp32)
+                fft_p = torch.fft.rfft2(pred_rgb_fp32, norm="ortho")
+                fft_g = torch.fft.rfft2(clean_rgb_fp32, norm="ortho")
+                loss_ssl_fft = F.l1_loss(torch.abs(fft_p), torch.abs(fft_g))
+                loss_ssl = loss_ssl_l1 + 0.15 * loss_ssl_fft
+
                 loss_ml = asl_criterion(out["multi_label_logits"], gt_ml)
-                loss_seg = ce_criterion(out["seg_logits_256"].float(), gt_seg_256) + dice_loss_256(
-                    out["seg_logits_256"], gt_seg_256
+
+                # Innovation #18: Top-15% OHEM Cross-Entropy + Laplacian Boundary Loss + Dice Loss
+                seg_logits_fp32 = out["seg_logits_256"].float()
+                pixel_ce = ce_per_pixel(seg_logits_fp32, gt_seg_256).view(seg_logits_fp32.size(0), -1)
+                k_hard = max(1, int(pixel_ce.size(1) * 0.15))
+                ohem_ce = torch.topk(pixel_ce, k=k_hard, dim=1)[0].mean()
+
+                pred_dyn_prob = F.softmax(seg_logits_fp32, dim=1)[:, 1:3].sum(dim=1, keepdim=True)
+                gt_dyn_float = (gt_seg_256 > 0).float().unsqueeze(1)
+                pred_edge = torch.abs(F.conv2d(pred_dyn_prob, laplacian_kernel, padding=1))
+                gt_edge = torch.abs(F.conv2d(gt_dyn_float, laplacian_kernel, padding=1))
+                loss_boundary = F.l1_loss(pred_edge, gt_edge)
+
+                loss_seg = (
+                    0.6 * ce_criterion(seg_logits_fp32, gt_seg_256)
+                    + 0.4 * ohem_ce
+                    + dice_loss_256(out["seg_logits_256"], gt_seg_256)
+                    + 0.35 * loss_boundary
                 )
+
                 loss_hm = focal_heatmap_loss_256(out["small_hm_256"], gt_hm_256)
                 loss_reg = (
                     F.smooth_l1_loss(out["small_reg_256"].float() * gt_mask_256, gt_reg_256.float() * gt_mask_256, reduction="sum")
                     / gt_mask_256.sum().clamp(min=1.0)
                 )
                 loss_risk = F.mse_loss(out["pred_risk_256"].float(), gt_risk_256.float())
-                loss_traj = F.smooth_l1_loss(out["pred_traj"].float(), gt_traj.float())
+
+                # Innovation #20: Position L1 + First-Order Velocity Matching + Second-Order Acceleration Smoothness
+                pred_tr = out["pred_traj"].float()
+                gt_tr = gt_traj.float()
+                loss_pos = F.smooth_l1_loss(pred_tr, gt_tr)
+                vel_pred = pred_tr[:, 1:, :] - pred_tr[:, :-1, :]
+                vel_gt = gt_tr[:, 1:, :] - gt_tr[:, :-1, :]
+                loss_vel = F.smooth_l1_loss(vel_pred, vel_gt)
+                acc_pred = vel_pred[:, 1:, :] - vel_pred[:, :-1, :]
+                acc_gt = vel_gt[:, 1:, :] - vel_gt[:, :-1, :]
+                loss_acc = F.smooth_l1_loss(acc_pred, acc_gt)
+                loss_traj = loss_pos + 0.45 * loss_vel + 0.20 * loss_acc
 
                 # Obstacle avoidance penalty on 256x256 risk field
-                B_cur = pred_traj_b = out["pred_traj"].size(0)
-                gx = (out["pred_traj"][:, :, 0].float() / 64.0) - 1.0
-                gy = (out["pred_traj"][:, :, 1].float() / 64.0) - 1.0
+                gx = (pred_tr[:, :, 0] / 64.0) - 1.0
+                gy = (pred_tr[:, :, 1] / 64.0) - 1.0
                 grid_pts = torch.stack([gx, gy], dim=-1).unsqueeze(2)
                 sampled_risk = F.grid_sample(
                     gt_risk_256.unsqueeze(1).float(), grid_pts, mode="bilinear", padding_mode="zeros", align_corners=False
@@ -532,7 +603,7 @@ def main():
 
                 loss_lora = F.mse_loss(out["dp_weights"].float(), gt_dp_w.float())
 
-                total_loss = (
+                base_total = (
                     0.4 * loss_ssl
                     + 1.5 * loss_ml
                     + 2.0 * loss_seg
@@ -543,6 +614,13 @@ def main():
                     + 1.2 * sampled_risk
                     + 1.0 * loss_lora
                 )
+                if hasattr(model, "uncertainty_weighter"):
+                    unc_total = model.uncertainty_weighter(
+                        [loss_ssl, loss_ml, loss_seg, loss_hm + 0.2 * loss_reg, loss_risk, loss_traj + sampled_risk, loss_lora]
+                    )
+                    total_loss = 0.7 * base_total + 0.3 * unc_total
+                else:
+                    total_loss = base_total
 
             if not torch.isfinite(total_loss):
                 continue
@@ -610,9 +688,35 @@ def main():
             if GDRIVE_ROOT.exists():
                 shutil.copy2(ckpt_p, GDRIVE_ROOT / "checkpoints_a100" / ckpt_p.name)
 
-            # Real-time update of final_ablation_report.md with the 6-Direction Pro256 row
+            # Real-time update of final_ablation_report.md keeping both v2 (Pro256) and v3 (Ultra256) rows
             report_p = OUT_DIR / "final_ablation_report.md"
-            report_md = f"""# UniPercep-DP (A100-80GB): 全量训练、消融实验与六大方向升级 (`Pro256`) 定量评估报告
+            v2_row = "| **`Full_Pro256_6Cam` (v2.0-Pro256)** | **+ 6-Cam Surround + 256x256 BEV + Polar Lift + Kinematic GridSample DP + ClassQuery ML + ConvNeXt/EMA** | **81.02 / 74.00** | **51.68** | **59.37** | **1.242** | **2.509** | **7.62** |"
+            v2_p = CKPT_DIR / "Full_Pro256_6Cam_best.pt"
+            if v2_p.exists():
+                try:
+                    c2 = torch.load(v2_p, map_location="cpu", weights_only=False)
+                    m2 = c2.get("metrics", {})
+                    ep2 = c2.get("epoch", 1)
+                    if m2:
+                        v2_row = f"| **`Full_Pro256_6Cam` (v2.0-Pro256, Ep {ep2})** | **+ 6-Cam Surround + 256x256 BEV + Polar Lift + Kinematic GridSample DP + ClassQuery ML + ConvNeXt/EMA** | **{m2['MultiLabel_F1']:.2f} / {m2['MultiLabel_Acc']:.2f}** | **{m2['Small_Object_AP']:.2f}** | **{m2['Seg_mIoU']:.2f}** | **{m2['Traj_ADE']:.3f}** | **{m2['Traj_FDE']:.3f}** | **{m2['Collision_Rate']:.2f}** |"
+                except Exception:
+                    pass
+
+            v3_row = ""
+            for v3_name, v3_label in [("Full_v3_Ultra", "v3.0-Ultra256 Full"), ("Pilot_v3_Ultra", "v3.0-Ultra256 Pilot")]:
+                v3_p = CKPT_DIR / f"{v3_name}_best.pt"
+                if v3_p.exists():
+                    try:
+                        c3 = torch.load(v3_p, map_location="cpu", weights_only=False)
+                        m3 = c3.get("metrics", {})
+                        ep3 = c3.get("epoch", 1)
+                        if m3:
+                            v3_row = f"\n| **`{v3_name}` ({v3_label}, Ep {ep3})** | **+ All 21 Innovations (2D-FFT + FiLM + Homography Motion + Strip-Polar + LabelGraph + OHEM/Boundary + Repulsive Potential DP + WarmStart)** | **{m3['MultiLabel_F1']:.2f} / {m3['MultiLabel_Acc']:.2f}** | **{m3['Small_Object_AP']:.2f}** | **{m3['Seg_mIoU']:.2f}** | **{m3['Traj_ADE']:.3f}** | **{m3['Traj_FDE']:.3f}** | **{m3['Collision_Rate']:.2f}** |"
+                            break
+                    except Exception:
+                        pass
+
+            report_md = f"""# UniPercep-DP (A100-80GB): 全量训练、消融实验与三代架构演进 (`v1 -> v2 -> v3`) 定量评估报告
 
 ## 一、 全量验证集定量对比表 (`val_full.jsonl`)
 
@@ -621,8 +725,8 @@ def main():
 | `Ablation_1_Baseline` | Monocular Only, No SSL/LP-FT, Direct MLP Traj | 79.66 / 73.59 | 3.68 | 31.17 | 4.095 | 7.007 | 6.25 |
 | `Ablation_2_With_SSL_LPFT` | + SSL Anti-Degradation & LP-FT Tuning | 80.37 / 74.79 | 6.10 | 31.17 | 3.916 | 6.812 | 2.73 |
 | `Ablation_3_With_MultiSensor` | + 3x128x128 LiDAR BEV & 14D Homography Cross-Attn | 79.85 / 74.82 | 42.46 | 57.61 | 2.981 | 5.348 | 3.71 |
-| `Full_UniPercep_DP` (v1) | + 128x128 Differentiable DP & RAG-LoRA Controller | 83.87 / 81.19 | 54.73 | 64.76 | 1.500 | 3.031 | 3.12 |
-| **`{tag}` (v2 Six-Upgrade SOTA)** | **+ 6-Cam Surround + 256x256 BEV + Polar Lift + Kinematic GridSample DP + ClassQuery ML + ConvNeXt/EMA (Ep {ep})** | **{val_metrics['MultiLabel_F1']:.2f} / {val_metrics['MultiLabel_Acc']:.2f}** | **{val_metrics['Small_Object_AP']:.2f}** | **{val_metrics['Seg_mIoU']:.2f}** | **{val_metrics['Traj_ADE']:.3f}** | **{val_metrics['Traj_FDE']:.3f}** | **{val_metrics['Collision_Rate']:.2f}** |
+| `Full_UniPercep_DP` (v1.0-Base128) | + 128x128 Differentiable DP & RAG-LoRA Controller | 83.87 / 81.19 | 54.73 | 64.76 | 1.500 | 3.031 | 3.12 |
+{v2_row}{v3_row}
 """
             with open(report_p, "w", encoding="utf-8") as rf:
                 rf.write(report_md)
